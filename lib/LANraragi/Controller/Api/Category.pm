@@ -5,19 +5,20 @@ use Redis;
 use Encode;
 
 use LANraragi::Model::Category;
-use LANraragi::Utils::Generic qw(render_api_response);
+use LANraragi::Model::Config;
+use LANraragi::Utils::Generic qw(render_api_response exec_with_lock get_item_title);
 
 sub get_category_list {
 
-    my $self = shift;
+    my $self = shift->openapi->valid_input or return;
     my @cats = LANraragi::Model::Category->get_category_list;
-    $self->render( json => \@cats );
+    $self->render( openapi => \@cats );
 
 }
 
 sub get_category {
 
-    my $self     = shift;
+    my $self     = shift->openapi->valid_input or return;
     my $catid    = $self->stash('id');
     my %category = LANraragi::Model::Category::get_category($catid);
 
@@ -26,13 +27,13 @@ sub get_category {
         return;
     }
 
-    $self->render( json => \%category );
+    $self->render( openapi => \%category );
 }
 
 sub create_category {
 
-    my $self   = shift;
-    my $name   = $self->req->param('name') || "";
+    my $self   = shift->openapi->valid_input or return;
+    my $name   = $self->req->param('name')   || "";
     my $search = $self->req->param('search') || "";
     my $pinned = ( $self->req->param('pinned') && $self->req->param('pinned') ne "false" ) ? 1 : 0;
 
@@ -43,7 +44,7 @@ sub create_category {
 
     my $created_id = LANraragi::Model::Category::create_category( $name, $search, $pinned, "" );
     $self->render(
-        json => {
+        openapi => {
             operation   => "create_category",
             category_id => $created_id,
             success     => 1
@@ -54,7 +55,7 @@ sub create_category {
 
 sub update_category {
 
-    my $self     = shift;
+    my $self     = shift->openapi->valid_input or return;
     my $catid    = $self->stash('id');
     my %category = LANraragi::Model::Category::get_category($catid);
 
@@ -63,79 +64,167 @@ sub update_category {
         return;
     }
 
-    my $name   = $self->req->param('name')   || $category{name};
-    my $search = $self->req->param('search') || $category{search};
-    my $pinned = ( $self->req->param('pinned') && $self->req->param('pinned') ne "false" ) ? 1 : 0;
+    return unless exec_with_lock(
+        $self,
+        "category-write:$catid",
+        "update_category",
+        $catid,
+        sub {
+            my $name   = $self->req->param('name')   || $category{name};
+            my $search = $self->req->param('search') || $category{search};
+            my $pinned = ( $self->req->param('pinned') && $self->req->param('pinned') ne "false" ) ? 1 : 0;
 
-    my $updated_id = LANraragi::Model::Category::create_category( $name, $search, $pinned, $catid );
+            my $updated_id = LANraragi::Model::Category::create_category( $name, $search, $pinned, $catid );
 
-    $self->render(
-        json => {
-            operation   => "update_category",
-            category_id => $updated_id,
-            success     => 1
+            $self->render(
+                openapi => {
+                    operation   => "update_category",
+                    category_id => $updated_id,
+                    success     => 1
+                }
+            );
         }
     );
 }
 
 sub delete_category {
 
-    my $self  = shift;
+    my $self  = shift->openapi->valid_input or return;
     my $catid = $self->stash('id');
 
-    my $result = LANraragi::Model::Category::delete_category($catid);
+    return unless exec_with_lock(
+        $self,
+        "category-write:$catid",
+        "delete_category",
+        $catid,
+        sub {
+            my $result = LANraragi::Model::Category::delete_category($catid);
 
-    if ($result) {
-        render_api_response( $self, "delete_category" );
-    } else {
-        render_api_response( $self, "delete_category", "The given category does not exist." );
-    }
+            if ($result) {
+                render_api_response( $self, "delete_category" );
+            } else {
+                render_api_response( $self, "delete_category", "The given category does not exist." );
+            }
+        }
+    );
 }
 
 sub add_to_category {
 
-    my $self  = shift;
+    my $self  = shift->openapi->valid_input or return;
     my $catid = $self->stash('id');
     my $arcid = $self->stash('archive');
 
-    my ( $result, $err ) = LANraragi::Model::Category::add_to_category( $catid, $arcid );
+    return unless exec_with_lock(
+        $self,
+        "category-write:$catid",
+        "add_to_category",
+        $catid,
+        sub {
+            my ( $result, $err ) = LANraragi::Model::Category::add_to_category( $catid, $arcid );
 
-    if ($result) {
-        my $successMessage = "Added $arcid to Category $catid!";
-        my %category       = LANraragi::Model::Category::get_category($catid);
-        my $title          = LANraragi::Model::Archive::get_title($arcid);
+            if ($result) {
+                my $successMessage = "Added $arcid to Category $catid!";
+                my %category       = LANraragi::Model::Category::get_category($catid);
+                my $title          = get_item_title($arcid);
 
-        if ( %category && defined($title) ) {
-            $successMessage = "Added \"$title\" to category \"$category{name}\"!";
+                if ( %category && defined($title) ) {
+                    $successMessage = "Added \"$title\" to category \"$category{name}\"!";
+                }
+
+                render_api_response( $self, "add_to_category", undef, $successMessage );
+            } else {
+                render_api_response( $self, "add_to_category", $err );
+            }
         }
-
-        render_api_response( $self, "add_to_category", undef, $successMessage );
-    } else {
-        render_api_response( $self, "add_to_category", $err );
-    }
+    );
 }
 
 sub remove_from_category {
 
-    my $self  = shift;
+    my $self  = shift->openapi->valid_input or return;
     my $catid = $self->stash('id');
     my $arcid = $self->stash('archive');
 
-    my ( $result, $err ) = LANraragi::Model::Category::remove_from_category( $catid, $arcid );
+    return unless exec_with_lock(
+        $self,
+        "category-write:$catid",
+        "remove_from_category",
+        $catid,
+        sub {
+            my ( $result, $err ) = LANraragi::Model::Category::remove_from_category( $catid, $arcid );
 
-    if ($result) {
-        my $successMessage = "Removed $arcid from Category $catid!";
-        my %category       = LANraragi::Model::Category::get_category($catid);
-        my $title          = LANraragi::Model::Archive::get_title($arcid);
+            if ($result) {
+                my $successMessage = "Removed $arcid from Category $catid!";
+                my %category       = LANraragi::Model::Category::get_category($catid);
+                my $title          = get_item_title($arcid);
 
-        if ( %category && defined($title) ) {
-            $successMessage = "Removed \"$title\" from category \"$category{name}\"!";
+                if ( %category && defined($title) ) {
+                    $successMessage = "Removed \"$title\" from category \"$category{name}\"!";
+                }
+
+                render_api_response( $self, "remove_from_category", undef, $successMessage );
+            } else {
+                render_api_response( $self, "remove_from_category", $err );
+            }
         }
+    );
+}
 
-        render_api_response( $self, "remove_from_category", undef, $successMessage );
-    } else {
-        render_api_response( $self, "remove_from_category", $err );
+sub get_bookmark_link {
+
+    my $self  = shift->openapi->valid_input or return;
+    my $catid = LANraragi::Model::Category::get_bookmark_link();
+    return $self->render(
+        openapi => {
+            operation   => "get_bookmark_link",
+            success     => 1,
+            category_id => $catid
+        }
+    );
+
+}
+
+sub update_bookmark_link {
+
+    my $self  = shift->openapi->valid_input or return;
+    my $catid = $self->stash('id');
+    my ( $status_code, $message );
+    ( $status_code, $catid, $message ) = LANraragi::Model::Category::update_bookmark_link($catid);
+    unless ( $status_code == 200 ) {
+        return $self->render(
+            openapi => {
+                operation   => "update_bookmark_link",
+                success     => 0,
+                category_id => $catid,
+                error       => $message
+            },
+            status => $status_code
+        );
     }
+    return $self->render(
+        openapi => {
+            operation   => "update_bookmark_link",
+            category_id => $catid,
+            success     => 1
+        },
+        status => 200
+    );
+
+}
+
+sub remove_bookmark_link {
+
+    my $self  = shift->openapi->valid_input or return;
+    my $catid = LANraragi::Model::Category::remove_bookmark_link();
+    return $self->render(
+        openapi => {
+            operation   => "remove_bookmark_link",
+            category_id => $catid,
+            success     => 1
+        }
+    );
+
 }
 
 1;

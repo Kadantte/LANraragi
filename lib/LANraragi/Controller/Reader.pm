@@ -6,13 +6,17 @@ use Encode;
 
 use LANraragi::Utils::Generic qw(generate_themes_header);
 
-use LANraragi::Model::Reader;
-
 # This action will render a template
 sub index {
     my $self = shift;
 
     if ( $self->req->param('id') ) {
+
+        my $id = $self->req->param('id');
+        my $char = chop $id;
+        if ( $char ne "/" ) {
+            $id .= $char;
+        }
 
         # Allow adding to static categories
         my @categories     = LANraragi::Model::Category->get_static_category_list;
@@ -30,7 +34,9 @@ sub index {
             template       => "reader",
             title          => $self->LRR_CONF->get_htmltitle,
             use_local      => $self->LRR_CONF->enable_localprogress,
-            id             => $self->req->param('id'),
+            auth_progress  => $self->LRR_CONF->enable_authprogress,
+            id             => $id,
+            is_tank        => ( $id =~ /^TANK_/ ? 1 : 0 ),
             arc_categories => \@arc_categories,
             categories     => \@categories,
             csshead        => generate_themes_header($self),

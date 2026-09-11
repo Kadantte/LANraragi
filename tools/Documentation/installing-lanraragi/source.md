@@ -21,13 +21,22 @@ apt-get update
 apt-get upgrade -y
 apt-get install build-essential make gnupg pkg-config \
 cpanminus redis-server libarchive-dev imagemagick webp libssl-dev zlib1g-dev libjxl-dev \
-perlmagick ghostscript npm
+perlmagick npm libvips-dev
 ```
 
 _Base software dependencies._
 
 {% hint style="info" %}
-If your package manager requires you to specify which ImageMagick version to install, choose version 7.
+ImageMagick+PerlMagick and libvips are optional, but you need to install at least one to get thumbnail support.
+libvips is faster than ImageMagick and will be used automatically if both are installed.  
+
+libvips is required for PDF support.
+{% endhint %}
+
+{% hint style="info" %}
+If your package manager requires you to specify which ImageMagick version to install, choose version 7.  
+If you're using perlbrew, you'll have to install `Alien::ImageMagick` with CPAN in perlbrew's perl lib, which will handle downloading and building the `perlmagick` API bindings for you.  
+(LRR can work without ImageMagick running, but you'll lose out on any thumbnail support)  
 {% endhint %}
 
 {% hint style="info" %}

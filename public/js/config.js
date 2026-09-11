@@ -1,14 +1,19 @@
 /**
- * Config Operations.
+ * Config Operations
  */
+import * as Server from "./mod/server.js";
+import * as LRR from "./mod/common.js";
+import I18N from "i18n";
+
 const Config = {};
 
 Config.initializeAll = function () {
     // bind events to DOM
     $(document).on("click.save", "#save", () => { Server.saveFormData("#editConfigForm"); });
-    $(document).on("click.plugin-config", "#plugin-config", () => { window.location.href = "/config/plugins"; });
-    $(document).on("click.backup", "#backup", () => { window.location.href = "/backup"; });
-    $(document).on("click.return", "#return", () => { window.location.href = "/"; });
+    $(document).on("click.plugin-config", "#plugin-config", () => { window.location.href = new LRR.ApiURL("/config/plugins"); });
+    $(document).on("click.backup", "#backup", () => { window.location.href = new LRR.ApiURL("/backup"); });
+    $(document).on("click.batch", "#batch", () => { window.location.href = new LRR.ApiURL("/batch"); });
+    $(document).on("click.return", "#return", () => { window.location.href = new LRR.ApiURL("/"); });
     $(document).on("click.enablepass", "#enablepass", Config.enable_pass);
     $(document).on("click.enableresize", "#enableresize", Config.enable_resize);
     $(document).on("click.usedateadded", "#usedateadded", Config.enable_timemodified);
@@ -22,25 +27,12 @@ Config.initializeAll = function () {
     $(document).on("click.drop-db", "#drop-db", Server.dropDatabase);
 
     $(document).on("click.restart-button", "#restart-button", Config.rebootShinobu);
-    $(document).on("click.open-minion", "#open-minion", () => LRR.openInNewTab("/minion"));
+    $(document).on("click.open-minion", "#open-minion", () => LRR.openInNewTab(new LRR.ApiURL("/minion")));
 
     $(document).on("click.genthumb-button", "#genthumb-button", () => Server.regenerateThumbnails(false));
     $(document).on("click.forcethumb-button", "#forcethumb-button", () => Server.regenerateThumbnails(true));
 
-    $(document).on("click.modern", "#modern", () => Config.switch_style("Hachikuji"));
-    $(document).on("click.modern-div", "#modern-div", () => Config.switch_style("Hachikuji"));
-
-    $(document).on("click.modern_clear", "#modern_clear", () => Config.switch_style("Yotsugi"));
-    $(document).on("click.modern-clear-div", "#modern-clear-div", () => Config.switch_style("Yotsugi"));
-
-    $(document).on("click.modern_red", "#modern_red", () => Config.switch_style("Nadeko"));
-    $(document).on("click.modern-red-div", "#modern-red-div", () => Config.switch_style("Nadeko"));
-
-    $(document).on("click.ex", "#ex", () => Config.switch_style("Sad Panda"));
-    $(document).on("click.ex-div", "#ex-div", () => Config.switch_style("Sad Panda"));
-
-    $(document).on("click.g", "#g", () => Config.switch_style("H-Verse"));
-    $(document).on("click.g-div", "#g-div", () => Config.switch_style("H-Verse"));
+    $(document).on("click.theme-switch", ".theme-switch", Config.switchStyle);
 
     Config.enable_pass();
     Config.enable_resize();
@@ -51,7 +43,7 @@ Config.initializeAll = function () {
 
 Config.rebootShinobu = function () {
     $("#restart-button").prop("disabled", true);
-    Server.callAPI("/api/shinobu/restart", "POST", "Background Worker restarted!", "Error while restarting Worker:",
+    Server.callAPI("/api/shinobu/restart", "POST", I18N.ShinobuRestarted, I18N.ShinobuRestartError,
         () => {
             $("#restart-button").prop("disabled", false);
             Config.shinobuStatus();
@@ -61,7 +53,7 @@ Config.rebootShinobu = function () {
 
 Config.rescanContentFolder = function () {
     $("#rescan-button").prop("disabled", true);
-    Server.callAPI("/api/shinobu/rescan", "POST", "Content folder rescan started!", "Error while restarting Worker:",
+    Server.callAPI("/api/shinobu/rescan", "POST", I18N.ContentRescanStarted, I18N.ContentRescanError,
         () => {
             $("#rescan-button").prop("disabled", false);
             Config.shinobuStatus();
@@ -71,7 +63,7 @@ Config.rescanContentFolder = function () {
 
 // Update the status of the background worker.
 Config.shinobuStatus = function () {
-    Server.callAPI("/api/shinobu", "GET", null, "Error while querying Shinobu status:",
+    Server.callAPI("/api/shinobu", "GET", null, I18N.ShinobuStatusError,
         (data) => {
             if (data.is_alive) {
                 $("#shinobu-ok").show();
@@ -85,14 +77,18 @@ Config.shinobuStatus = function () {
     );
 };
 
-Config.switch_style = function (cssTitle) {
+Config.switchStyle = function (e) {
     let i, linkTag, correctStyle, defaultStyle, newStyle;
     correctStyle = 0;
 
+    const cssTitle = e.currentTarget.title;
+
     for (i = 0, linkTag = document.getElementsByTagName("link"); i < linkTag.length; i++) {
         if ((linkTag[i].rel.indexOf("stylesheet") !== -1) && linkTag[i].title) {
-            if ((linkTag[i].rel.indexOf("alternate stylesheet") !== -1)) linkTag[i].disabled = true;
-            else defaultStyle = linkTag[i];
+            if ((linkTag[i].rel.indexOf("alternate stylesheet") !== -1)) 
+                linkTag[i].disabled = true;
+            else 
+                defaultStyle = linkTag[i];
 
             if (linkTag[i].title === cssTitle) {
                 newStyle = linkTag[i];

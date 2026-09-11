@@ -1,5 +1,10 @@
-// Scripting for the Upload page.
-const Upload = {};
+/**
+ * Scripting for the Upload page
+*/
+
+import * as LRR from "./mod/common.js";
+import * as Server from "./mod/server.js";
+import I18N from "i18n";
 
 let processingArchives = 0;
 let completedArchives = 0;
@@ -7,10 +12,10 @@ let failedArchives = 0;
 let totalUploads = 0;
 
 // Set up jqueryfileupload.
-Upload.initializeAll = function () {
+export function initializeAll() {
     // bind events to DOM
-    $(document).on("click.download-url", "#download-url", Upload.downloadUrl);
-    $(document).on("click.return", "#return", () => { window.location.href = "/"; });
+    $(document).on("click.download-url", "#download-url", downloadUrl);
+    $(document).on("click.return", "#return", () => { window.location.href = new LRR.ApiURL("/"); });
 
     $("#fileupload").fileupload({
         dataType: "json",
@@ -21,15 +26,15 @@ Upload.initializeAll = function () {
         done(e, data) {
             let result;
             if (data.result.success === 0) {
-                result = `<tr><td>${data.result.name}</td>
-                              <td><i class='fa fa-exclamation-circle' style='margin-left:20px; margin-right: 10px; color: red'></i>${data.result.error}</td>
+                result = `<tr><td>${LRR.encodeHTML(data.result.name)}</td>
+                              <td><i class="fa fa-exclamation-circle" style="margin-left:20px; margin-right: 10px; color: red"></i>${LRR.encodeHTML(data.result.error)}</td>
                           </tr>`;
             } else {
                 result = `<tr><td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">
-                                <a href="#" id="${data.result.job}-name" title="${data.result.name}">${data.result.name}</a>
+                                <a href="#" id="${data.result.job}-name" title="${LRR.encodeHTML(data.result.name)}">${LRR.encodeHTML(data.result.name)}</a>
                               </td>
-                              <td><i id="${data.result.job}-icon" class='fa fa-spinner fa-spin' style='margin-left:20px; margin-right: 10px;'></i>
-                                <a href="#" id="${data.result.job}-link">Processing file... (Job #${data.result.job})</a>
+                              <td><i id="${data.result.job}-icon" class="fa fa-spinner fa-spin" style="margin-left:20px; margin-right: 10px;"></i>
+                                <a href="#" id="${data.result.job}-link">${I18N.UploadProcessing(data.result.job)}</a>
                               </td>
                           </tr>`;
             }
@@ -39,27 +44,27 @@ Upload.initializeAll = function () {
 
             totalUploads += 1;
             processingArchives += 1;
-            Upload.updateUploadCounters();
+            updateUploadCounters();
 
             // Check minion job state periodically to update the result
             Server.checkJobStatus(
                 data.result.job,
                 true,
-                (d) => Upload.handleCompletedUpload(data.result.job, d),
-                (error) => Upload.handleFailedUpload(data.result.job, error),
+                (d) => handleCompletedUpload(data.result.job, d),
+                (error) => handleFailedUpload(data.result.job, error),
             );
         },
 
         fail(e, data) {
-            const result = `<tr><td>${data.result.name}</td>
-                              <td><i class='fa fa-exclamation-circle' style='margin-left:20px; margin-right: 10px; color: red'></i>${data.errorThrown}</td>
+            const result = `<tr><td>${LRR.encodeHTML(data.result.name)}</td>
+                              <td><i class="fa fa-exclamation-circle" style="margin-left:20px; margin-right: 10px; color: red"></i>${LRR.encodeHTML(data.errorThrown)}</td>
                           </tr>`;
             $("#progress .bar").css("width", "0%");
             $("#files").append(result);
 
             totalUploads += 1;
             failedArchives += 1;
-            Upload.updateUploadCounters();
+            updateUploadCounters();
         },
 
         progressall(e, data) {
@@ -68,11 +73,11 @@ Upload.initializeAll = function () {
         },
 
     });
-};
+}
 
 // Handle updating the upload counters.
-Upload.updateUploadCounters = function () {
-    $("#progressCount").html(`🤔 Processing: ${processingArchives} 🙌 Completed: ${completedArchives} 👹 Failed: ${failedArchives}`);
+function updateUploadCounters() {
+    $("#progressCount").html(`🤔 ${I18N.UploadResume1} : ${processingArchives} 🙌 ${I18N.UploadResume2} : ${completedArchives} 👹 ${I18N.UploadResume3} : ${failedArchives}`);
 
     let icon;
     if (completedArchives === totalUploads) {
@@ -82,47 +87,48 @@ Upload.updateUploadCounters = function () {
     } else {
         icon = "fa fa-spinner fa-spin";
     }
-    $("#progressTotal").html(`<i class="${icon}"></i> Total:${completedArchives + failedArchives}/${totalUploads}`);
+    $("#progressTotal").html(`<i class="${icon}"></i> ${I18N.UploadTotal}:${completedArchives + failedArchives}/${totalUploads}`);
 
     // At the end of the upload job, dump the search cache!
     if (processingArchives === 0) { Server.invalidateCache(); }
-};
+}
 
 // Handle a completed job from minion.
 // Update the line in upload results with the title, ID, message.
-Upload.handleCompletedUpload = function (jobID, d) {
-    $(`#${jobID}-name`).html(d.result.title);
+function handleCompletedUpload(jobID, d) {
+    $(`#${jobID}-name`).text(d.result.title);
 
     if (d.result.id) {
-        $(`#${jobID}-name`).attr("href", `reader?id=${d.result.id}`);
-        $(`#${jobID}-link`).attr("href", `edit?id=${d.result.id}`);
+        $(`#${jobID}-name`).attr("href", new LRR.ApiURL(`/reader?id=${d.result.id}`));
+        $(`#${jobID}-link`).attr("href", new LRR.ApiURL(`/edit?id=${d.result.id}`));
+        $(`#${jobID}-link`).attr("target", "_blank");
     }
 
     if (d.result.success) {
-        $(`#${jobID}-link`).html(`Click here to edit metadata.<br>(${d.result.message})`);
+        $(`#${jobID}-link`).html(`${I18N.ClickToEdit}<br>(${LRR.encodeHTML(d.result.message)})`);
         $(`#${jobID}-icon`).attr("class", "fa fa-check-circle");
         completedArchives += 1;
     } else {
-        $(`#${jobID}-link`).html(`Error while processing archive.<br>(${d.result.message})`);
+        $(`#${jobID}-link`).html(`${I18N.UploadError}<br>(${LRR.encodeHTML(d.result.message)})`);
         $(`#${jobID}-icon`).attr("class", "fa fa-exclamation-circle");
         failedArchives += 1;
     }
 
     processingArchives -= 1;
-    Upload.updateUploadCounters();
-};
+    updateUploadCounters();
+}
 
-Upload.handleFailedUpload = function (jobID, d) {
-    $(`#${jobID}-link`).html(`Error while processing file.<br>(${d})`);
+function handleFailedUpload(jobID, d) {
+    $(`#${jobID}-link`).html(`${I18N.UploadError}<br>(${LRR.encodeHTML(d)})`);
     $(`#${jobID}-icon`).attr("class", "fa fa-exclamation-circle");
 
     failedArchives += 1;
     processingArchives -= 1;
-    Upload.updateUploadCounters();
-};
+    updateUploadCounters();
+}
 
 // Send URLs to the Download API and add a Server.checkJobStatus to track its progress.
-Upload.downloadUrl = function () {
+function downloadUrl() {
     const categoryID = document.getElementById("category").value;
 
     // One fetch job per non-empty line of the form
@@ -136,7 +142,7 @@ Upload.downloadUrl = function () {
             formData.append("catid", categoryID);
         }
 
-        fetch("/api/download_url", {
+        fetch(new LRR.ApiURL("/api/download_url"), {
             method: "POST",
             body: formData,
         })
@@ -144,10 +150,10 @@ Upload.downloadUrl = function () {
             .then((data) => {
                 if (data.success) {
                     const result = `<tr><td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">
-                                    <a href="#" id="${data.job}-name" title="${data.url}">${data.url}</a>
+                                    <a href="#" id="${data.job}-name" title="${LRR.encodeHTML(data.url)}">${LRR.encodeHTML(data.url)}</a>
                                 </td>
-                                <td><i id="${data.job}-icon" class='fa fa-spinner fa-spin' style='margin-left:20px; margin-right: 10px;'></i>
-                                <a href="#" id="${data.job}-link">Downloading file... (Job #${data.job})</a>
+                                <td><i id="${data.job}-icon" class="fa fa-spinner fa-spin" style="margin-left:20px; margin-right: 10px;"></i>
+                                <a href="#" id="${data.job}-link">${I18N.DownloadProcessing(data.job)}</a>
                                 </td>
                             </tr>`;
 
@@ -155,23 +161,19 @@ Upload.downloadUrl = function () {
 
                     totalUploads += 1;
                     processingArchives += 1;
-                    Upload.updateUploadCounters();
+                    updateUploadCounters();
 
                     // Check minion job state periodically to update the result
                     Server.checkJobStatus(
                         data.job,
                         true,
-                        (d) => Upload.handleCompletedUpload(data.job, d),
-                        (error) => Upload.handleFailedUpload(data.job, error),
+                        (d) => handleCompletedUpload(data.job, d),
+                        (error) => handleFailedUpload(data.job, error),
                     );
                 } else {
                     throw new Error(data.message);
                 }
             })
-            .catch((error) => LRR.showErrorToast("Error while adding download job", error));
+            .catch((error) => LRR.showErrorToast(I18N.DownloadError, error));
     });
-};
-
-jQuery(() => {
-    Upload.initializeAll();
-});
+}

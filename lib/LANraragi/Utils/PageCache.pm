@@ -1,0 +1,86 @@
+package LANraragi::Utils::PageCache;
+
+use v5.36;
+
+use strict;
+use warnings;
+use utf8;
+
+use List::Util qw(min max);
+use CHI;
+use Config;
+
+use LANraragi::Utils::Logging  qw(get_logger);
+use LANraragi::Utils::TempFolder qw(get_temp);
+
+use constant IS_UNIX => ( $Config{osname} ne 'MSWin32' );
+
+# Contains all functions related to caching entire pages
+use Exporter 'import';
+our @EXPORT_OK = qw(fetch put);
+
+my $cache = undef;
+
+sub calc_max_size() {
+    return max(0, min(LANraragi::Model::Config->get_tempmaxsize, 4096));
+}
+
+sub initialize() {
+    my $logger = get_logger( "PageCache", "lanraragi" );
+    my $disk_size = calc_max_size."m";
+    $logger->debug("Initializing cache, disk size: ".$disk_size);
+
+    if ( IS_UNIX ) {
+        $cache = CHI->new(
+            driver     => 'FastMmap',
+            cache_size => $disk_size,
+            root_dir => get_temp,
+        );
+    } else {
+        $cache = CHI->new(
+            driver     => 'Memory',
+            global => 1,
+            max_size => $disk_size,
+        );
+    }
+}
+
+# Fetches data from cache if available. Returns undef if nothing is there
+sub fetch( $key ) {
+    if (!defined($cache)) {
+        initialize;
+    }
+    my $logger = get_logger( "PageCache", "lanraragi" );
+    $logger->debug("Fetch $key");
+
+    my $content = $cache->get($key);
+    if (defined $content) {
+        $logger->debug("Cache HIT for $key");
+    } else {
+        $logger->debug("Cache MISS for $key");
+    }
+    return $content;
+}
+
+# Attempts to store data in the cache. Do not assume that fetch will work immediately after, cache may be disabled etc
+sub put( $key, $content ) {
+    if (!defined($cache)) {
+        initialize;
+    }
+    my $logger = get_logger( "PageCache", "lanraragi" );
+    $logger->debug("Put $key");
+
+    $cache->set($key, $content);
+}
+
+sub clear() {
+    if (!defined($cache)) {
+        initialize;
+    }
+
+    my $logger = get_logger( "PageCache", "lanraragi" );
+    $logger->debug("Clearing cache");
+    $cache->clear();
+}
+
+1;

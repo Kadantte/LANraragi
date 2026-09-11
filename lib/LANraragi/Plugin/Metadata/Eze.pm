@@ -15,6 +15,7 @@ use LANraragi::Utils::Database;
 use LANraragi::Utils::Logging qw(get_plugin_logger);
 use LANraragi::Utils::String  qw(trim);
 use LANraragi::Utils::Archive qw(is_file_in_archive extract_file_from_archive);
+use LANraragi::Utils::Path    qw(create_path open_path_or_die);
 
 #Meta-information about your plugin.
 sub plugin_info {
@@ -25,7 +26,7 @@ sub plugin_info {
         type        => "metadata",
         namespace   => "ezeplugin",
         author      => "Difegue",
-        version     => "2.3.1",
+        version     => "2.4",
         description =>
           "Collects metadata from eze-style info.json files ({'gallery_info': {xxx} } syntax), either embedded in your archive or in the same folder with the same name. ({archive_name}.json)",
         icon =>
@@ -52,7 +53,7 @@ sub get_tags {
     my $path_in_archive = is_file_in_archive( $lrr_info->{file_path}, "info.json" );
 
     my ( $name, $path, $suffix ) = fileparse( $lrr_info->{file_path}, qr/\.[^.]*/ );
-    my $path_nearby_json = $path . $name . '.json';
+    my $path_nearby_json = create_path( $path . $name . '.json' );
 
     my $filepath;
     my $delete_after_parse;
@@ -67,14 +68,13 @@ sub get_tags {
         $logger->debug("Found file nearby at $filepath");
         $delete_after_parse = 0;
     } else {
-        return ( error => "No in-archive info.json or {archive_name}.json file found!" );
+        die "No in-archive info.json or {archive_name}.json file found!\n";
     }
 
     #Open it
     my $stringjson = "";
 
-    open( my $fh, '<:encoding(UTF-8)', $filepath )
-      or return ( error => "Could not open $filepath!" );
+    open_path_or_die( my $fh, '<:encoding(UTF-8)', $filepath );
 
     while ( my $row = <$fh> ) {
         chomp $row;
@@ -85,6 +85,10 @@ sub get_tags {
     my $hashjson = from_json $stringjson;
 
     $logger->debug("Loaded the following JSON: $stringjson");
+
+    if ($hashjson->{gallery_info} == undef) {
+        return (error => "The info.json file could not be parsed as an eze file!");
+    }
 
     #Parse it
     my ( $tags, $title ) = tags_from_eze_json( $origin_title, $additional_tags, $hashjson );
@@ -152,9 +156,11 @@ sub tags_from_eze_json {
         $timestamp = $timestamp / 1000;
     } else {
         my $upload_date = $hash->{"gallery_info"}->{"upload_date"};
-        my $time = timegm_modern( $$upload_date[5], $$upload_date[4], $$upload_date[3], $$upload_date[2], $$upload_date[1] - 1,
-            $$upload_date[0] );
-        $timestamp = $time;
+        if ($upload_date) {
+            my $time = timegm_modern( $$upload_date[5], $$upload_date[4], $$upload_date[3], $$upload_date[2], $$upload_date[1] - 1,
+                $$upload_date[0] );
+            $timestamp = $time;
+        }
     }
 
     if ($category) {

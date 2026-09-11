@@ -5,11 +5,12 @@ use Redis;
 use Encode;
 use Mojo::JSON qw(decode_json);
 
-use LANraragi::Utils::Generic  qw(generate_themes_header);
-use LANraragi::Utils::Tags     qw(rewrite_tags split_tags_to_array restore_CRLF);
-use LANraragi::Utils::Database qw(redis_decode get_computed_tagrules set_tags set_title set_summary set_isnew invalidate_cache);
+use LANraragi::Utils::Generic  qw(generate_themes_header exec_with_lock_pure);
+use LANraragi::Utils::Tags     qw(rewrite_tags build_tag_replace_hash split_tags_to_array restore_CRLF);
+use LANraragi::Utils::Database qw(get_computed_tagrules set_tags set_title set_summary set_isnew invalidate_cache);
 use LANraragi::Utils::Plugins  qw(get_plugins get_plugin get_plugin_parameters);
 use LANraragi::Utils::Logging  qw(get_logger);
+use LANraragi::Utils::Redis    qw(redis_decode);
 
 # This action will render a template
 sub index {
@@ -17,6 +18,19 @@ sub index {
 
     #Build plugin listing
     my @pluginlist = get_plugins("metadata");
+
+    for ( my $i = 0; $i < scalar @pluginlist; $i++ ) {
+        my $plugin = $pluginlist[$i];
+        if ( ref( $plugin->{parameters} ) eq 'HASH' ) {
+            my @params;
+            foreach my $key ( sort keys %{ $plugin->{parameters} } ) {
+                my $param = $plugin->{parameters}{$key};
+                $param->{name} = $key;
+                push( @params, $param );
+            }
+            $pluginlist[$i]->{parameters} = \@params;
+        }
+    }
 
     # Get static category list
     my @categories = LANraragi::Model::Category->get_static_category_list;
@@ -48,6 +62,8 @@ sub socket {
     # Increase inactivity timeout for connection a bit to account for clientside timeouts
     $self->inactivity_timeout(80);
 
+    my @rules = get_computed_tagrules();
+    my ( $rules, $hash_replace_rules ) = build_tag_replace_hash( \@rules );
     $self->on(
         message => sub {
             my ( $self, $msg ) = @_;
@@ -78,21 +94,28 @@ sub socket {
                 }
 
                 # Global arguments can come from the database or the user override
-                my @args = @{ $command->{"args"} };
+                my @args_override = @{ $command->{"args"} };
 
-                if ( !@args ) {
-                    $logger->debug("No user overrides given.");
+                # get the saved defaults
+                my %args = get_plugin_parameters($pluginname);
+                if (@args_override) {
 
-                    # Try getting the saved defaults
-                    @args = get_plugin_parameters($pluginname);
-                } else {
+                    $logger->debug("Overriding configured parameters");
+                    if ( exists $args{customargs} ) {
 
-                    # Decode user overrides
-                    @args = map { redis_decode($_) } @args;
+                        # Decode user overrides
+                        $args{customargs} = [ map { redis_decode($_) } @args_override ];
+                    } else {
+                        my @keys = sort grep { $_ !~ m/^enabled$/ } keys %args;
+                        while ( my ( $idx, $key ) = each @keys ) {
+                            $args{customargs}{$key} = redis_decode( $args_override[$idx] );
+                        }
+                    }
+
                 }
 
                 # Send reply message for completed archive
-                $client->send( { json => batch_plugin( $id, $plugin, @args ) } );
+                $client->send( { json => batch_plugin( $id, $plugin, %args ) } );
                 return;
             }
 
@@ -132,8 +155,7 @@ sub socket {
                 $tags = redis_decode($tags);
 
                 my @tagarray = split_tags_to_array($tags);
-                my @rules    = get_computed_tagrules();
-                @tagarray = rewrite_tags( \@tagarray, \@rules );
+                @tagarray = rewrite_tags( \@tagarray, $rules, $hash_replace_rules );
 
                 # Merge array with commas
                 my $newtags = join( ', ', @tagarray );
@@ -157,7 +179,23 @@ sub socket {
             if ( $operation eq "delete" ) {
                 $logger->debug("Deleting $id...");
 
-                my $delStatus = LANraragi::Model::Archive::delete_archive($id);
+                my ( $acquired, $delStatus ) = exec_with_lock_pure(
+                    [ "archive-write:$id" ],
+                    sub { LANraragi::Model::Archive::delete_archive($id) }
+                );
+
+                unless ($acquired) {
+                    $client->send(
+                        {   json => {
+                                id       => $id,
+                                filename => "",
+                                message  => "Locked resource: $id.",
+                                success  => 0
+                            }
+                        }
+                    );
+                    return;
+                }
 
                 $client->send(
                     {   json => {
@@ -196,15 +234,10 @@ sub socket {
 }
 
 sub batch_plugin {
-    my ( $id, $plugin, @args ) = @_;
+    my ( $id, $plugin, %args ) = @_;
 
     # Run plugin with args on id
-    my %plugin_result;
-    eval { %plugin_result = LANraragi::Model::Plugins::exec_metadata_plugin( $plugin, $id, "", @args ); };
-
-    if ($@) {
-        $plugin_result{error} = $@;
-    }
+    my %plugin_result = LANraragi::Model::Plugins::exec_metadata_plugin( $plugin, $id, %args );
 
     # If the plugin exec returned tags, add them
     unless ( exists $plugin_result{error} ) {

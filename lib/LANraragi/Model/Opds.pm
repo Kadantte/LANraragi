@@ -10,7 +10,9 @@ use Mojo::Util qw(xml_escape);
 
 use LANraragi::Utils::Generic  qw(get_tag_with_namespace);
 use LANraragi::Utils::Archive  qw(get_filelist);
-use LANraragi::Utils::Database qw(get_archive_json );
+use LANraragi::Utils::Database qw(get_archive_json);
+use LANraragi::Utils::Path     qw(get_archive_path);
+
 use LANraragi::Model::Category;
 use LANraragi::Model::Search;
 
@@ -25,7 +27,8 @@ sub generate_opds_catalog {
     my @cats    = LANraragi::Model::Category->get_category_list;
 
     # Use the search engine to get the list of archives to show in the catalog.
-    my ( $total, $filtered, @keys ) = LANraragi::Model::Search::do_search( "", $cat_id, $start, "title", 0, 0, 0 );
+    # TODO Add tankgroup/hidecompleted support to opds?
+    my ( $total, $filtered, @keys ) = LANraragi::Model::Search::do_search( "", $cat_id, $start, "title", 0, 0, 0, 0, 0 );
 
     my @list = ();
 
@@ -92,7 +95,7 @@ sub get_opds_data {
     my $id    = shift;
     my $redis = LANraragi::Model::Config->get_redis;
 
-    my $file = $redis->hget( $id, "file" );
+    my $file = get_archive_path( $redis, $id );
     unless ( -e $file ) { return; }
 
     my $arcdata = get_archive_json( $redis, $id );
@@ -117,6 +120,8 @@ sub get_opds_data {
         $arcdata->{mimetype} = "application/x-cbr";
     } elsif ( $file =~ /^(.*\/)*.+\.(epub)$/ ) {
         $arcdata->{mimetype} = "application/epub+zip";
+    } elsif ( $file =~ /^(.*\/)*.+\.(cbw)$/ ) {
+        $arcdata->{mimetype} = "application/xml";
     } else {
         $arcdata->{mimetype} = "application/x-cbz";
     }
@@ -135,12 +140,10 @@ sub render_archive_page {
     my ( $mojo, $id, $page ) = @_;
 
     my $redis   = $mojo->LRR_CONF->get_redis;
-    my $archive = $redis->hget( $id, "file" );
+    my $archive = get_archive_path( $redis, $id );
 
     # Parse archive to get its list of images
-    my ( $images, $sizes ) = get_filelist($archive);
-
-    my @images = @$images;
+    my @images = get_filelist( $archive, $id );
 
     # If the page number is invalid, use the first page.
     if ( $page > scalar @images ) {

@@ -1,4 +1,4 @@
-# 🍎 Homebrew (macOS/Linux)
+# 🍎 Homebrew (macOS)
 
 ## Migration
 
@@ -12,7 +12,7 @@ cd <LRR folder>
 mkdir -p "${lrr}"
 mv content "${lrr}/content"
 mv log "${lrr}/log"
-mv public/temp "${lrr}/temp"
+mv temp "${lrr}/temp"
 mv database.rdb "${lrr}/database/database.rdb"
 ```
 
@@ -34,15 +34,15 @@ brew install lanraragi
 
 ## Configuration
 
-Your content folder is stored by default in `${HOME}/Library/Application Support/LANraragi`. (`${HOME}/LANraragi/content` on Linux.)  
-The Redis database is stored in `${HOME}/Library/Application Support/LANraragi/database`. (`${HOME}/LANraragi/database` on Linux.)  
+Your content folder is stored by default in `${HOME}/Library/Application Support/LANraragi`. (`${HOME}/LANraragi/content` on Linux.)\
+The Redis database is stored in `${HOME}/Library/Application Support/LANraragi/database`. (`${HOME}/LANraragi/database` on Linux.)\
 While the in-app settings page won't allow you to change the location of the content folder, you can do so by overriding the `LRR_DATA_DIRECTORY` environment variable before launching.
 
 ## Usage
 
 Once installed, you can get started by running `lanraragi` and opening [http://localhost:3000](http://localhost:3000).
 
-![brew](<../.screenshots/brew.jpg>)
+![brew](<../.gitbook/assets/brew.jpg>)
 
 To change the default port or add SSL support, see this page:
 
@@ -64,5 +64,5 @@ The same warning as in the Installation step applies.
 
 ## Uninstallation
 
-Run `brew remove lanraragi` to uninstall the app.  
+Run `brew remove lanraragi` to uninstall the app.\
 Data in the `${HOME}/Library/Application Support/LANraragi`/`${HOME}/LANraragi/` folder is not deleted.

@@ -6,35 +6,50 @@ use open ':std', ':encoding(UTF-8)';
 
 use Mojo::Base 'Mojolicious';
 use Mojo::File;
-use Mojo::JSON qw(decode_json encode_json);
+use Mojo::JSON;
 use Storable;
 use Sys::Hostname;
 use Config;
+use URI::Escape;
+use Time::HiRes qw(gettimeofday);
 
-use LANraragi::Utils::Generic    qw(start_shinobu start_minion);
+use LANraragi::Utils::Generic    qw(start_shinobu start_minion get_version);
 use LANraragi::Utils::Logging    qw(get_logger get_logdir);
 use LANraragi::Utils::Plugins    qw(get_plugins);
 use LANraragi::Utils::TempFolder qw(get_temp);
 use LANraragi::Utils::Routing;
 use LANraragi::Utils::Minion;
+use LANraragi::Utils::I18N;
+use LANraragi::Utils::I18NInitializer;
 
 use LANraragi::Model::Search;
 use LANraragi::Model::Config;
+use LANraragi::Model::Plugins;
+use LANraragi::Model::Registry;
+use LANraragi::Model::Server;
+use LANraragi::Model::Setup      qw(first_install_actions);
+use LANraragi::Model::Metrics;
+
+use constant IS_UNIX => ( $Config{osname} ne 'MSWin32' );
 
 # This method will run once at server start
 sub startup {
     my $self = shift;
 
+    if ( !IS_UNIX ) {
+        # Enable autoflush
+        $| = 1;
+    }
+
     say "";
     say "";
     say "ｷﾀ━━━━━━(ﾟ∀ﾟ)━━━━━━!!!!!";
 
-    # Load package.json to get version/vername/description
-    my $packagejson = decode_json( Mojo::File->new('package.json')->slurp );
+    my $version_info = get_version;
 
-    my $version = $packagejson->{version};
-    my $vername = $packagejson->{version_name};
-    my $descstr = $packagejson->{description};
+    my $version = $version_info->{version};
+    my $vername = $version_info->{version_name};
+    my $descstr = $version_info->{description};
 
     my $secret          = "";
     my $secretfile_path = get_temp . "/oshino";
@@ -65,12 +80,20 @@ sub startup {
     $self->helper( LRR_VERNAME => sub { return $vername; } );
     $self->helper( LRR_DESC    => sub { return $descstr; } );
 
+    #Helper to JSON-encode a value for safe embedding in templates
+    $self->helper( json_esc => sub { shift; return Mojo::JSON::to_json(shift); } );
+
     #Helper to build logger objects quickly
     $self->helper(
         LRR_LOGGER => sub {
             return get_logger( "LANraragi", "lanraragi" );
         }
     );
+
+    # for some reason I can't call the one under LRR_CONF from the
+    # templates, so create a separate helper here
+    my $prefix = $self->LRR_CONF->get_baseurl();
+    $self->helper( LRR_BASEURL => sub { return $prefix } );
 
     #Check if a Redis server is running on the provided address/port
     eval { $self->LRR_CONF->get_redis->ping(); };
@@ -94,6 +117,12 @@ sub startup {
         sleep 2;
     }
 
+    # Initialize cache
+    LANraragi::Utils::PageCache::initialize();
+
+    # Load i18n
+    LANraragi::Utils::I18NInitializer::initialize($self);
+
     # Check old settings and migrate them if needed
     if ( $self->LRR_CONF->get_redis->keys('LRR_*') ) {
         say "Migrating old settings to new format...";
@@ -103,28 +132,33 @@ sub startup {
     if ( $self->LRR_CONF->enable_devmode ) {
         $self->mode('development');
         $self->LRR_LOGGER->info("LANraragi $version (re-)started. (Debug Mode)");
-
-        my $logpath = get_logdir . "/mojo.log";
-
-        #Tell the mojo logger to log to file
-        $self->log->on(
-            message => sub {
-                my ( $time, $level, @lines ) = @_;
-
-                open( my $fh, '>>', $logpath )
-                  or die "Could not open file '$logpath' $!";
-
-                my $l1 = $lines[0] // "";
-                my $l2 = $lines[1] // "";
-                print $fh "[Mojolicious] $l1 $l2 \n";
-                close $fh;
-            }
-        );
-
     } else {
         $self->mode('production');
         $self->LRR_LOGGER->info("LANraragi $version started. (Production Mode)");
     }
+
+    # Route Mojolicious/plugin logs (including OpenAPI validation warnings)
+    # through LRR's rotating logger pipeline.
+    $self->log( get_logger( "Mojolicious", "mojo" ) );
+
+    # Reconcile discovered plugins with Redis state.
+    my $redis_config = $self->LRR_CONF->get_redis_config;
+    LANraragi::Model::Plugins::scan_plugins($redis_config);
+
+    # Refresh plugin registries at server start. 
+    # This doesn't really help long-running servers, but those can just hit manual refreshes
+    # in the Registry UI. 
+    foreach my $registry ( LANraragi::Model::Registry::get_registry_list($redis_config) ) {
+        my $registry_id = $registry->{id};
+        my ( $status, undef, $error ) = LANraragi::Model::Registry::refresh_registry( $registry_id, $redis_config );
+        unless ( $status == 200 ) {
+            $self->LRR_LOGGER->warn("Startup refresh of registry '$registry_id' failed: $error");
+        }
+    }
+
+    # Reset restart flag.
+    LANraragi::Model::Server::clear_restart_pending($redis_config);
+    $redis_config->quit();
 
     #Plugin listing
     my @plugins = get_plugins("metadata");
@@ -146,9 +180,16 @@ sub startup {
     }
 
     # Enable Minion capabilities in the app
-    shutdown_from_pid( get_temp . "/minion.pid" );
+    if ( IS_UNIX ) {
+        shutdown_from_pid( get_temp . "/minion.pid" );
+    }
 
-    my $miniondb      = $self->LRR_CONF->get_redisad . "/" . $self->LRR_CONF->get_miniondb;
+    my $redisad = $self->LRR_CONF->get_redisad;
+
+    # URL encode the unix socket path so it can be recognized as the host
+    if ( $redisad =~ m{^/} ) { $redisad = uri_escape( $redisad ); }
+
+    my $miniondb      = $redisad . "/" . $self->LRR_CONF->get_miniondb;
     my $redispassword = $self->LRR_CONF->get_redispassword;
 
     # If the password is non-empty, add the required delimiters
@@ -171,17 +212,97 @@ sub startup {
     start_minion($self);
 
     # Start File Watcher
-    shutdown_from_pid( get_temp . "/shinobu.pid" );
+    if ( IS_UNIX ) {
+        shutdown_from_pid( get_temp . "/shinobu.pid" );
+    }
     start_shinobu($self);
+
+    # Check if this is a first-time installation.
+    first_install_actions();
 
     # Hook to SIGTERM to cleanly kill minion+shinobu on server shutdown
     # As this is executed during before_dispatch, this code won't work if you SIGTERM without loading a single page!
     # (https://stackoverflow.com/questions/60814220/how-to-manage-myself-sigint-and-sigterm-signals)
     $self->hook(
         before_dispatch => sub {
-            state $unused = add_sigint_handler();
+            my $c = shift;
+            if ( IS_UNIX ) {
+                state $unused = add_sigint_handler();
+            }
+
+            my $prefix = $self->LRR_BASEURL;
+            if ($prefix) {
+                if ( !($prefix =~ m|^/[^"]*[^/"]$|) ) {
+                    say "Warning: configured URL prefix '$prefix' invalid, ignoring";
+
+                    # if prefix is invalid, then set it to empty for the cookie
+                    $prefix = "";
+                } else {
+                    $c->req->url->base->path($prefix);
+                }
+            }
+
+            # SameSite=Lax is the default behavior here; I set it
+            # explicitly to get rid of a warning in the browser
+            $c->cookie( "lrr_baseurl" => $prefix, { samesite => "lax", path => "/" } );
         }
     );
+
+    # Enable metrics collection if configured.
+    # Metrics collection occurs at 2 layers, the API handling layer and the process layer
+    # API metrics collection is done passively whenever an API call is processed.
+    # Process metrics collection is done actively on a periodic basis.
+    if (LANraragi::Model::Config->enable_metrics) {
+
+        # Clean up metrics from previous server sessions
+        LANraragi::Model::Metrics::cleanup_metrics();
+
+        # Hook to start metrics timing (controllers are owned by their request)
+        $self->hook(
+            before_dispatch => sub {
+                my $c = shift;
+                $c->stash( 'metrics.start_time' => [ gettimeofday ] );
+            }
+        );
+
+        # Hook to collect HTTP request metrics
+        $self->hook(
+            after_dispatch => sub {
+                my $c = shift;
+                LANraragi::Model::Metrics::collect_request_metrics($c);
+            }
+        );
+
+        # Periodically collect process metrics and flush cached request metrics to redis
+        Mojo::IOLoop->recurring(30 => sub {
+            LANraragi::Model::Metrics::collect_process_metrics( "http" );
+            LANraragi::Model::Metrics::flush_request_metrics_to_redis();
+        });
+
+        # Manage Mojo worker lifecycles
+        $self->hook(
+            before_server_start => sub {
+                my ( $server, $app ) = @_;
+
+                # track all active workers.
+                $server->on(
+                    spawn => sub {
+                        my ( $prefork, $pid ) = @_;
+                        LANraragi::Model::Metrics::register_worker($pid);
+                    }
+                );
+                $server->on(
+                    reap => sub {
+                        my ( $prefork, $pid ) = @_;
+                        LANraragi::Model::Metrics::unregister_worker($pid);
+                    }
+                );
+            }
+        );
+
+        $self->LRR_LOGGER->info("Metrics collection is enabled.");
+
+    }
 
     LANraragi::Utils::Routing::apply_routes($self);
     $self->LRR_LOGGER->info("Routing done! Ready to receive requests.");
@@ -205,6 +326,7 @@ sub shutdown_from_pid {
 sub add_sigint_handler {
     my $old_int = $SIG{INT};
     $SIG{INT} = sub {
+        LANraragi::Model::Metrics::flush_request_metrics_to_redis() if LANraragi::Model::Config->enable_metrics;
         shutdown_from_pid( get_temp . "/shinobu.pid" );
         shutdown_from_pid( get_temp . "/minion.pid" );
 

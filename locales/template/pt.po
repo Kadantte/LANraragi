@@ -1,0 +1,2028 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-05 03:27+0200\n"
+"PO-Revision-Date: 2026-08-31 17:00+0000\n"
+"Last-Translator: DevonDekhran <devondekhran@protonmail.com>\n"
+"Language-Team: Portuguese <https://hosted.weblate.org/projects/lanraragi/"
+"lanraragi-source/pt/>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 2026.9.dev0\n"
+
+# Sample Data
+# ------Start of Backup.html.tt2------
+msgid "Database Backup/Restore"
+msgstr ""
+
+msgid "You can backup your existing database here, or restore an existing backup."
+msgstr ""
+"Aqui Você pode fazer uma cópia do seu banco de dados atual ou restaurar uma "
+"cópia existente."
+
+msgid "Backuping allows you to download a JSON file containing all your categories and archive IDs, and their matching metadata."
+msgstr ""
+"A cópia de segurança permite que descarregue um ficheiro JSON que contém "
+"todas as suas categorias e IDs de ficheiro, além dos metadados "
+"correspondentes."
+
+msgid "Restoring from a backup will restore this metadata, <b>for IDs which already exist in your database.</b>"
+msgstr ""
+"A restauração a partir de uma cópia de segurança restaurará esses metadados, "
+"<b>para IDs que já existem em seu banco de dados.</b>"
+
+msgid "(Categories will always be restored)"
+msgstr "(As categorias sempre serão restauradas)"
+
+msgid "Backup Database"
+msgstr "Backup do Banco de Dados"
+
+msgid "Restore Backup"
+msgstr "Restaurar o Backup"
+
+msgid "Restoring your backup ..."
+msgstr "Restaurando seu backup ..."
+
+msgid "Return to Library"
+msgstr ""
+
+# ------End of Backup.html.tt2------
+# ------Start of Batch.html.tt2------
+msgid "Batch Operations"
+msgstr ""
+
+msgid "You can apply modifications to multiple archives in one go here."
+msgstr "Aqui você pode aplicar modificações em múltiplos arquivos de uma vez."
+
+msgid "Select what you'd like to do, check archives you want to use it on, and get rolling!"
+msgstr ""
+"Selecione o que você gostaria de fazer, verifique os arquivos em que deseja "
+"fazê-lo e simbora!"
+
+msgid "Archives with no tags have been pre-checked."
+msgstr "Arquivos sem etiquetas foram pré-selecionados."
+
+msgid "Task :"
+msgstr "Tarefa:"
+
+msgid "Use Plugin"
+msgstr "Utilizar um Plugin"
+
+msgid "Remove New Flag"
+msgstr "Remover a Nova Flag"
+
+msgid "Apply Tag Rules"
+msgstr "Aplicar as Regras das Etiquetas"
+
+msgid "Add To Category"
+msgstr "Adicionar a Categoria"
+
+msgid "Delete Archive"
+msgstr ""
+
+msgid "Use plugin :"
+msgstr "Utilizar o plugin:"
+
+msgid "Timeout (max 20s):"
+msgstr "Tempo restante de no (máximo 20s):"
+
+msgid "This plugin recommends a cooldown of <span id=\"cooldown\">-1</span> seconds."
+msgstr ""
+"Esse plugin recomenda um tempo de espera de <span id=\"cooldown\">-1</span> "
+"segundos."
+
+msgid "Some external services may temporarily ban your machine for excessive loads if you call a plugin too many times!"
+msgstr ""
+"Alguns serviços externos podem banir temporariamente sua máquina por excesso "
+"de carga caso o plugin seja requisitado várias vezes!"
+
+msgid "Make sure to set a suitable <b>timeout</b> between archives using this picker if the plugin you want to use is concerned."
+msgstr ""
+"Certifique-se de definir um <b>tempo limite</b> adequado entre os arquivos "
+"usando este seletor, caso o plugin que você deseja usar esteja em questão."
+
+msgid "Override Plugin Global Arguments"
+msgstr "Substituir Argumentos Globais do Plugin"
+
+msgid "This will apply the following Tag Rules to the selected Archives."
+msgstr ""
+"Isso aplicará as seguintes Regras da Etiqueta aos Arquivos selecionados."
+
+msgid "You can edit your Tag Rules in Server Configuration."
+msgstr "Você pode editar sua Etiqueta de Regras na Configuração do Servidor."
+
+msgid "Server Configuration"
+msgstr "Configuração do Servidor"
+
+msgid "This removes the \"new\" flag from the selected archives."
+msgstr "Isso remove a flag de \"novo\" dos arquivos selecionados."
+
+msgid "Add to Category :"
+msgstr "Adicionar a Categoria:"
+
+msgid "This will delete both metadata and matching files from your system! Please use with caution."
+msgstr ""
+"Isso irá excluir os metadados e os arquivos correspondentes do seu sistema! "
+"Use com cautela."
+
+msgid "Check/Uncheck all"
+msgstr "Marcar/Desmarcar tudo"
+
+msgid "Start Task"
+msgstr "Iniciar a Tarefa"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Start another job"
+msgstr "Iniciar um outro serviço"
+
+msgid "Processed <span id=\"arcs\"></span> out of <span id=\"totalarcs\"></span>"
+msgstr ""
+"Processado <span id=\"arcs\"></span> fora de <span id=\"totalarcs\"></span>"
+
+msgid "Preparing your data."
+msgstr "Preparando seus dados."
+
+msgid "Plugin Configuration"
+msgstr ""
+
+msgid "Return to Library"
+msgstr ""
+
+# ------End of Batch.html.tt2------
+# ------Start of Category.html.tt2------
+msgid "Categories"
+msgstr ""
+
+msgid "Categories appear at the top of your window when browsing the Library."
+msgstr ""
+"As categorias aparecem na parte superior da janela ao navegar na Biblioteca."
+
+msgid "There are two distinct kinds:"
+msgstr "Existem dois tipos distintos:"
+
+msgid "Static Categories are arbitrary collections of Archives, where you can add as many items as you want."
+msgstr ""
+"Categorias estáticas são coleções aleatórias de arquivos, onde você pode "
+"adicionar quantos itens quiser."
+
+msgid "Dynamic Categories contain all archives matching a given predicate, and automatically update alongside your library."
+msgstr ""
+"Categorias Dinâmicas incluem todos os arquivos que atendem a uma condição "
+"específica e são atualizadas automaticamente conforme sua biblioteca muda."
+
+msgid "You can create new categories here or edit existing ones."
+msgstr "Você pode criar aqui uma nova categoria ou editar uma existente."
+
+msgid "Select a category in the combobox below to edit its name, the archives it contains, or its predicate."
+msgstr ""
+"Selecione uma categoria na lista abaixo para editar seu nome, os arquivos "
+"incluídos ou sua regra."
+
+msgid "All your modifications are saved automatically."
+msgstr "Todas as modificações serão salvas automaticamente."
+
+msgid "Category:"
+msgstr "Categoria:"
+
+msgid "Name:"
+msgstr "Nome:"
+
+msgid "Predicate:"
+msgstr "Regra:"
+
+msgid "Pin this Category"
+msgstr "Fixar essa Categoria"
+
+msgid "Delete Category"
+msgstr "Excluir Categoria"
+
+msgid "If you select a Static Category, your archives will appear here so you can add/remove them from the category."
+msgstr ""
+"Se você selecionar uma categoria estática, seus arquivos aparecerão aqui "
+"para que você possa adicioná-los/removê-los da categoria."
+
+msgid "Return to Library"
+msgstr ""
+
+msgid "Store Bookmarks in this Category"
+msgstr "Marcadores da Loja nessa Categoria"
+
+msgid "Error linking bookmark button:"
+msgstr "Error na conexão do botão de marcação:"
+
+msgid "Error unlinking bookmark button:"
+msgstr "Erro ao desvincular o botão de favoritos:"
+
+msgid "Error getting bookmark category:"
+msgstr "Erro ao obter categoria do marcador:"
+
+msgid "New Static Category"
+msgstr "Nova Categoria Estática"
+
+msgid "New Dynamic Category"
+msgstr "Nova Categoria Dinâmica"
+
+# ------End of Category.html.tt2------
+# ------Start of Config.html.tt2------
+msgid "Admin Settings"
+msgstr "Ajustes do Administrador"
+
+msgid "LANraragi"
+msgstr "LANraragi"
+
+msgid "Version %1 %2"
+msgstr "Versão %1 - %2"
+
+msgid "Select a category to show the matching settings."
+msgstr "Selecione uma categoria para exibir as configurações correspondentes."
+
+msgid "Save Settings"
+msgstr "Salvar Configurações"
+
+msgid "Plugin Configuration"
+msgstr ""
+
+msgid "Database Backup/Restore"
+msgstr "Banco de Dados Backup/Restaurar"
+
+msgid "Return to Library"
+msgstr ""
+
+msgid "Global Settings"
+msgstr "Configurações Globais"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Security"
+msgstr "Segurança"
+
+msgid "Archive Files"
+msgstr "Arquivos Arquivados"
+
+msgid "Tags and Thumbnails"
+msgstr "Etiquetas e Miniaturas"
+
+msgid "Background Workers"
+msgstr "Background Workers"
+
+# ------End of Config.html.tt2------
+# ------Start of Config_Files.html.tt2------
+msgid "Archive Directory"
+msgstr "Diretório de Arquivos"
+
+msgid "Directory where the archives will be located. It will be created if it doesn't exist."
+msgstr ""
+"Diretório onde os arquivos serão localizados. Será criado se ainda não "
+"existir."
+
+msgid "Make sure the OS user running LANraragi has read access to this directory."
+msgstr ""
+"Certifique-se de que o usuário do Sistema Operacional que executa o "
+"LANraragi tenha acesso a leitura desse diretório."
+
+msgid "Synology eCryptFS Compatibility Mode"
+msgstr "Modo de Compatibilidade Synology eCryptFS"
+
+msgid "If enabled, LANraragi will cutoff archive filenames to 143 bytes, which is the max accepted by eCryptFS."
+msgstr ""
+"Se ativo, o LANraragi irá cortar os nomes dos arquivos compactados para 143 "
+"bytes, que é o máximo aceito pelo eCryptFS."
+
+msgid "Rescan Archive Directory"
+msgstr ""
+
+msgid "Click this button to trigger a rescan of the Archive Directory in case you're missing files, or some data such as total page counts."
+msgstr ""
+
+msgid "Maximum <br>Cache Size"
+msgstr "Máximo <br>Tamanho do Cache"
+
+msgid "In MBs. The cache contains recently viewed pages, for faster subsequent reading."
+msgstr ""
+"Em MB. O contém as páginas visualizadas recentemente, para leituras "
+"subsequentes mais rápidas."
+
+msgid "It is automatically emptied when it grows past this specified size."
+msgstr ""
+"Ele é esvaziado automaticamente quando ultrapassa o tamanho especificado."
+
+msgid "Clear Cache"
+msgstr "Limpar o Cache"
+
+msgid "Current Size:"
+msgstr "Tamanho Atual:"
+
+msgid "Clear the cache manually by clicking this button."
+msgstr "Limpar o cache manualmente ao clicar nesse botão."
+
+msgid "Reset Search Cache"
+msgstr "Redefinir Cache de Pesquisa"
+
+msgid "The last searches done in the archive index are cached for faster loads."
+msgstr ""
+"As últimas pesquisas feitas no índice do arquivo são armazenadas em cache "
+"para carregamento mais rápidos."
+
+msgid "If something went wrong with said cache, you can reset it by clicking this button."
+msgstr ""
+"Se algo der errado com o cache, você pode redefini-lo clicando nesse botão."
+
+msgid "Clear NEW flags"
+msgstr "Limpar NOVO sinalizador"
+
+msgid "Newly uploaded archives are marked as \"new\" in the index until you\'ve opened them."
+msgstr ""
+"Os arquivos recém-carregados são marcados como \"novos\" no índice até que "
+"você os abra."
+
+msgid "If you want to clear those flags, click this button."
+msgstr "Se você quer limpar esses sinalizadores, clique nesse botão."
+
+msgid "Replace duplicated archives"
+msgstr "Substituir arquivos duplicados"
+
+msgid "If enabled, LANraragi will overwrite old archives when a newer one (with the same name) is uploaded through the Web Uploader or the Download System."
+msgstr ""
+"Se ativado, o LANraragi substituirá ficheiros antigos quando um mais novo "
+"(com o mesmo nome) for carregado através do Web Uploader ou do Sistema de "
+"Descargas."
+
+msgid "This will delete metadata for old files when they're replaced! Use with caution."
+msgstr ""
+"Isso irá excluir os metadados dos arquivos antigos quando eles forem "
+"substituídos! Use com cautela."
+
+# ------End of Config_Files.html.tt2------
+# ------Start of Config_Global.html.tt2------
+msgid "Site Title"
+msgstr "Título do Site"
+
+msgid "The site title appears on most pages as...their title."
+msgstr "O título do site aparece na maioria das páginas como...seu título."
+
+msgid "MOTD"
+msgstr "MOTD (Mensagem do Dia)"
+
+msgid "Slang for Message of the Day. Appears on top of the main Library view."
+msgstr ""
+"A gíria para Mensagem do Dia (MOTD). Aparece no topo da visualização "
+"principal da Biblioteca."
+
+msgid "Archives per page"
+msgstr "Arquivos por página"
+
+msgid "Number of archives shown on a page in the main list."
+msgstr "Número de arquivos exibidos em uma página na lista principal."
+
+msgid "Resize Images in Reader"
+msgstr "Redimensionar imagens no Leitor"
+
+msgid "If enabled, pages exceeding a certain size will be resized when viewed to save bandwidth."
+msgstr ""
+"Se ativado, as páginas que excederem um determinado tamanho serão "
+"redimensionadas quando visualizadas para economizar largura de banda."
+
+msgid "This option can potentially consume a lot of RAM if enabled and used on large images! Use with caution."
+msgstr ""
+"Esta opção pode consumir muita RAM caso seja ativada e usada em imagens "
+"grandes! Use com cautela."
+
+msgid "Image Size Threshold"
+msgstr "Limite do Tamanho da Imagem"
+
+msgid "(in KBs.) Maximum size an image can reach before being resized."
+msgstr ""
+"(em KBs) Tamanho máximo que uma imagem pode atingir antes de ser "
+"redimensionada."
+
+msgid "Resize Quality"
+msgstr "Qualidade de Redimensionamento"
+
+msgid "Quality of the resized images. Less quality = Smaller image. (0-100)"
+msgstr ""
+"Qualidade de redimensionamento das imagens. Menor qualidade = Imagem menor. "
+"(0-100)"
+
+msgid "Clientside Progress Tracking"
+msgstr "Acompanhamento do Progresso do Lado do Cliente"
+
+msgid "Enabling this option will save reading progression on the browser (through localStorage) instead of the server."
+msgstr ""
+"Habilitar esta opção salvará o progresso da leitura no navegador (por meio "
+"do localStorage) em vez do servidor."
+
+msgid "Consider toggling this option if you're sharing the LANraragi instance with multiple users!"
+msgstr ""
+"Considere alternar esta opção se você estiver compartilhando a instância do "
+"LANraragi com vários usuários!"
+
+msgid "Debug Mode"
+msgstr "Modo de Depuração"
+
+msgid "Enabling Debug Mode will show more logs and disable update nagging."
+msgstr ""
+"Habilitar o Modo de Depuração irá exibir os logs e desabilitar a "
+"persistência nas atualizações."
+
+msgid "Fully effective after restarting LANraragi."
+msgstr ""
+
+msgid "Clean Database"
+msgstr "Limpar Banco de Dados"
+
+msgid "Enable Metrics"
+msgstr "Habilitar métricas"
+
+msgid "Enable metrics collection and serve them through the metrics endpoint in the Prometheus exposition format."
+msgstr ""
+
+msgid "Cleaning the database will remove entries that aren't on your filesystem."
+msgstr ""
+"Ao limpar o banco de dados as entradas que não estão no seu sistema de "
+"arquivos serão removidas."
+
+msgid "Reset Database"
+msgstr "Reiniciar Banco de Dados"
+
+msgid "Danger zone!"
+msgstr "Área Perigosa!"
+
+msgid "Clicking this button will reset the entire database and delete all settings and metadata."
+msgstr ""
+"Ao clicar nesse botão todo o banco de dados será redefinido e todas as "
+"configurações e metadados serão excluídos."
+
+# ------End of Config_Global.html.tt2------
+# ------Start of Config_Security.html.tt2------
+msgid "Enable Password"
+msgstr "Senha Ativa"
+
+msgid "If enabled, everything that isn't reading will require a password."
+msgstr "Se ativado, tudo que não for de leitura irá exigir uma senha."
+
+msgid "New Password"
+msgstr "Nova Senha"
+
+msgid "New Password Confirmation"
+msgstr "Confirmação de Nova Senha"
+
+msgid "Only edit these fields if you want to change your password."
+msgstr "Edite esses campos somente se você quiser alterar a sua senha."
+
+msgid "The one already stored will be used otherwise."
+msgstr "O que já está armazenado será utilizado de outra forma."
+
+msgid "No-Fun Mode"
+msgstr "Modo Sem Diversão"
+
+msgid "Enabling No-Fun Mode will lock reading archives behind the password as well."
+msgstr ""
+"Habilitando o modo Sem Diversão a leitura de arquivos serão bloqueadas com "
+"uma senha."
+
+msgid "Fully effective after restarting LANraragi."
+msgstr "Totalmente eficaz após reiniciar o LANraragi."
+
+msgid "API Key"
+msgstr "Chave da API"
+
+msgid "If you wish to use the Client API and have a password, you'll have to set a key here."
+msgstr ""
+"Se você deseja usar a API do cliente e tem uma senha, você terá que definir "
+"uma chave aqui."
+
+msgid "Empty keys will <b>not</b> work!"
+msgstr "Chaves vazias <b>não irão</b> funcionar!"
+
+msgid "This key will need to be provided in every protected API call as the <i>Authorization</i> header."
+msgstr ""
+"Essa chave precisa ser fornecida a cada chamada protegida da API como a "
+"<i>Autorização</i> no cabeçalho."
+
+msgid "Enable CORS for the Client API"
+msgstr "Habilitar CORS para a API do cliente"
+
+msgid "Have API requests support Cross-Origin Resource Sharing, which allows web browsers to access it off other domains."
+msgstr ""
+"Faça com que as solicitações de API ofereçam suporte ao CORS ("
+"Compartilhamento de Recursos entre Origens), o que permite que os "
+"navegadores da internet acessem esses recursos de outros domínios."
+
+msgid "Turn this on if you want to access this service through a web-based wrapper (e.g. a userscript) used/hosted on another domain."
+msgstr ""
+"Ative esta opção caso desejar acessar este serviço por meio de um web-based "
+"wrapper (por exemplo, um script de usuário) usado/hospedado em outro domínio."
+
+# ------End of Config_Security.html.tt2------
+# ------Start of Config_Shinobu.html.tt2------
+msgid "Shinobu Status"
+msgstr "Estado do Shinobu"
+
+msgid "The Shinobu File Watcher is currently"
+msgstr "O Arquivo de Observação (File Watcher) do Shinobu é o atual"
+
+msgid "OK!"
+msgstr "OK!"
+
+msgid "Kaput!"
+msgstr "Kaput!"
+
+msgid "This File Watcher is responsible for monitoring your content directory and automatically handling new archives as they come."
+msgstr ""
+"Esse File Watcher (Arquivo de Observação) é responsável pelo monitoramento "
+"do conteúdo do seu diretório e manipulação automática do arquivos conforme "
+"eles chegam."
+
+msgid "Restart File Watcher"
+msgstr "Reiniciar o File Watcher (Arquivo de Observação)"
+
+msgid "If Shinobu is dead or unresponsive, you can reboot her by clicking this button."
+msgstr ""
+"Se o Shinobu morrer ou estiver sem resposta, você pode reiniciá-lo clicando "
+"nesse botão."
+
+msgid "Open Minion Console"
+msgstr "Abrir o Console Minion"
+
+msgid "The Minion Worker handles spare tasks that are too long to execute within the request/response lifecycle of web applications."
+msgstr ""
+"O Minion Worker lida com tarefas extras que são muito longas para serem "
+"executadas dentro do ciclo de vida de solicitação/resposta de aplicativos "
+"web."
+
+msgid "The console shows currently running and concluded tasks."
+msgstr "O console mostra as tarefas em execução e as concluídas."
+
+# ------End of Config_Shinobu.html.tt2------
+# ------Start of Config_Tags.html.tt2------
+msgid "Thumbnail Directory"
+msgstr "Diretório de Miniaturas"
+
+msgid "Directory where the archive thumbnails will be located. It will be created if it doesn't exist."
+msgstr ""
+"O diretório onde armazena as miniaturas dos arquivos localizados. Ele é "
+"criado caso não tenha um."
+
+msgid "Make sure the OS user running LANraragi has read/write access to this directory."
+msgstr ""
+"Certifique-se de que o usuário do Sistema Operacional que executa o "
+"LANraragi tenha acesso de leitura/gravação desse diretório."
+
+msgid "Use high-quality thumbnails for pages"
+msgstr "Use miniaturas de alta qualidade para páginas"
+
+msgid "LANraragi generates lower-quality thumbnails for archive pages for performance reasons."
+msgstr ""
+"O LANraragi gera miniaturas de baixa qualidade para páginas de arquivo por "
+"causa do desempenho."
+
+msgid "If this option is checked, it will instead generate page thumbnails at the same quality as cover thumbnails."
+msgstr ""
+"Se esta opção estiver marcada, serão geradas miniaturas de página com a "
+"mesma qualidade das miniaturas da capa."
+
+msgid "Use JPEG XL for thumbnails"
+msgstr "Utilizar o JPEG XL para miniaturas"
+
+msgid "LANraragi generates JPEG thumbnails for compatibility and performance reasons."
+msgstr ""
+"O LANraragi gera miniaturas JPEG por razões de compatibilidade e desempenho."
+
+msgid "If this option is checked, it will instead generate thumbnails using JPEG XL."
+msgstr "Se esta opção estiver marcada, serão geradas miniaturas usando JPEG XL."
+
+msgid "Generate Missing Thumbnails"
+msgstr "Gerar Miniaturas Ausentes"
+
+msgid "Generate Thumbnails for all archives that don't have one yet."
+msgstr "Gerar miniaturas para todos os arquivos que ainda não possui uma."
+
+msgid "Regenerate all Thumbnails"
+msgstr "Regenerar Todas as Miniaturas"
+
+msgid "Regenerate all thumbnails. This might take a while!"
+msgstr "Regenera todas as miniaturas. Isso pode demorar um pouco!"
+
+msgid "Add Timestamp Tag"
+msgstr "Adicionar um Registro de Data e Hora na Etiqueta"
+
+msgid "If enabled, LANraragi will add the UNIX timestamp of the current time as a tag under the \"date_added\" namespace to newly added archives."
+msgstr ""
+"Se habilitado, o LANraragi adiciona o registro de data e hora UNIX da hora "
+"atual como uma tag no namespace \"date_added\" dos arquivos recém-"
+"adicionados."
+
+msgid "Use \"Last modified\" Time"
+msgstr "Utilizar a hora da \"Última modificação\""
+
+msgid "Enabling this will use file modified time instead of current time when setting \"date_added\" timestamps."
+msgstr ""
+"Habilitando isso irá utilizar a hora de modificação do arquivo em vez da "
+"hora atual ao definir os registros de data e hora \"date_added\"."
+
+msgid "Tag Rules"
+msgstr "Regras das Etiquetas"
+
+msgid "When tagging archives using Plugins, the rules specified here will be applied to the tags before saving them to the database."
+msgstr ""
+"Ao marcar os arquivos usando Plugins, as regras especificadas aqui serão "
+"aplicadas nas tags antes de serem salvas no banco de dados."
+
+msgid "Split rules with linebreaks."
+msgstr "Dividir as regras com a quebras de linha."
+
+msgid "<b>-tag | tag</b> : removes the tag (like a blacklist)"
+msgstr "<b>-tag | tag</b> : remover a tag (como uma lista negra)"
+
+msgid "<b>-namespace:*</b> : removes all tags within this namespace"
+msgstr "<b>-namespace:*</b> : remove todas as tags dentro deste namespace"
+
+msgid "namespace : strips the namespace from the tags"
+msgstr "<b>~namespace</b> : retira o namespace das tags"
+
+msgid "<b>tag -> new-tag</b> : replaces one tag"
+msgstr "<b>tag -> nova-tag</b> : substitui uma tag"
+
+msgid "<b>tag => new-tag</b> : replaces one tag, but use a hash table internally for faster performance. These rules will be executed <i>once</i> after all other rules."
+msgstr ""
+"<b>tag => nova-tag</b>: substitui uma tag, mas usa uma tabela de hash "
+"internamente para um desempenho mais rápido. Essas regras serão executadas "
+"<i>uma vez</i> após todas as outras regras."
+
+msgid "<b>namespace:* -> new-namespace:*</b> : replaces the namespace with the new one"
+msgstr ""
+"<b>namespace:* -> novo-namespace:*</b> : substitui o namespace pelo novo"
+
+# ------End of Config_Tags.html.tt2------
+# ------Start of Config_Theme.html.tt2------
+msgid "The selected theme will apply to the entire application and be shown to all users."
+msgstr ""
+"O tema selecionado será aplicado a todo aplicativo e será exibido a todos os "
+"usuários."
+
+msgid "If you're using a browser that supports \"theme-color\", the theme's primary color will also be applied there."
+msgstr ""
+"Se você estiver usando um navegador compatível com \"cor-do-tema\", a cor "
+"primária do tema também irá ser aplicada."
+
+msgid "Click on a theme to preview it before saving!"
+msgstr "Clique em um tema para visualizá-lo antes de salvar!"
+
+# ------End of Config_Theme.html.tt2------
+# ------Start of Edit.html.tt2------
+msgid "Editing %1 by %2"
+msgstr "Editando %1 por %2"
+
+msgid "Editing %1"
+msgstr "Editando %1"
+
+msgid "Current File Name:"
+msgstr "Nome do Arquivo Atual:"
+
+msgid "ID:"
+msgstr "ID:"
+
+msgid "Title:"
+msgstr "Título:"
+
+msgid "Summary:"
+msgstr "Sumário:"
+
+msgid "Tags"
+msgstr ""
+
+msgid "(separated by hyphens, i.e : tag1, tag2)"
+msgstr "(separados por hífens, ou seja: tag1, tag2)"
+
+msgid "Import Tags from Plugin :"
+msgstr "Importar as Etiquetas do Plugin:"
+
+msgid "Help"
+msgstr ""
+
+msgid "Go!"
+msgstr "Vá!"
+
+msgid "Using a Plugin will save any modifications to archive metadata you might have made !"
+msgstr ""
+"Utilizar um plugin irá salvar quaisquer modificações que você possa ter "
+"feito nos metadados do arquivo!"
+
+msgid "Save Metadata"
+msgstr "Salvar Metadados"
+
+msgid "Delete Archive"
+msgstr ""
+
+msgid "Read Archive"
+msgstr "Ler Arquivo"
+
+msgid "Return to Library"
+msgstr ""
+
+# ------End of Edit.html.tt2------
+# ------Start of Index.html.tt2------
+msgid "Add Archives"
+msgstr "Adicione Arquivos"
+
+msgid "Batch Operations"
+msgstr "Operações em Lotes"
+
+msgid "Settings"
+msgstr "Ajustes"
+
+msgid "Modify Categories"
+msgstr "Modificar Categorias"
+
+msgid "Statistics"
+msgstr "Estatísticas"
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "Admin Login"
+msgstr "Login do Administrador"
+
+msgid "Search Title, Artist, Series, Language or Tags"
+msgstr "Pesquisar o Título, Artista, Série, Idioma ou Etiquetas"
+
+msgid "Apply Filter"
+msgstr "Aplicar Filtro"
+
+msgid "Clear Filter"
+msgstr "Limpar Filtro"
+
+msgid "Click to show archives from the current search with the specified filter"
+msgstr "Ciaue para exibir os arquivos da bisca atual com o filtro específico"
+
+msgid "Refresh Selection"
+msgstr "Atualizar a Seleção"
+
+msgid "Carousel Options"
+msgstr "Carrossel de Opções"
+
+msgid "No results here."
+msgstr "Nenhum resultado aqui."
+
+msgid "Sort by:"
+msgstr "Ordenar por:"
+
+msgid "Title"
+msgstr ""
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Sort Order"
+msgstr "Ordem de Ordenação"
+
+msgid "Crop thumbnails"
+msgstr "Cortar miniaturas"
+
+msgid "If enabled, thumbnails that don't fit a regular A4 page will be cropped to only show the left side."
+msgstr ""
+
+msgid "Hide completed"
+msgstr ""
+
+msgid "If enabled, Archives you've already completed will be hidden from the list."
+msgstr ""
+
+msgid "Go to Page:"
+msgstr "Ir para Página:"
+
+msgid "Columns:"
+msgstr "Colunas:"
+
+msgid "Switch to Compact Mode"
+msgstr "Mudar para o Modo Compacto"
+
+msgid "Switch to Thumbnail Mode"
+msgstr "Mudar para o Modo Miniatura"
+
+msgid "Title"
+msgstr ""
+
+msgid "Artist"
+msgstr "Artista"
+
+msgid "Series"
+msgstr "Séries"
+
+msgid "Tags"
+msgstr ""
+
+msgid "Edit this column"
+msgstr ""
+
+msgid "I don't know everything, but I sure as hell know this database's busted lads"
+msgstr ""
+"Eu não sei de tudo, mas com certeza sei que esse banco de dados está "
+"quebrado, rapazes"
+
+msgid "The database cache is corrupt, and as such LANraragi is unable to display your archive list."
+msgstr ""
+"O cache do banco de dados está corrompido e, por isso, o LANraragi não "
+"consegue exibir sua lista de arquivos."
+
+msgid "Read"
+msgstr "Leitura"
+
+msgid "Download"
+msgstr "Descarregar"
+
+msgid "Edit Metadata"
+msgstr "Editar Metadata"
+
+msgid "Delete"
+msgstr "Apagar"
+
+msgid "Add Rating"
+msgstr "Adicionar Classificação"
+
+msgid "Add to Category"
+msgstr "Adicionar na Categoria"
+
+msgid "New Version Release Notes"
+msgstr "Notas de Lançamento da Nova Versão"
+
+msgid "You\'re using the default password and that\'s super baka of you"
+msgstr "Você está usando a senha padrão e isso é super legal da sua parte"
+
+msgid "Login with password \"kamimamita\" and change that shit on the double. ...Or just disable it! Why not check the configuration options afterwards, while you\'re at it?"
+msgstr ""
+"<a href=\"/login\">Faça login</a> com a senha \"kamimamita\" e <a href="
+"\"/config\">mude essa porcaria</a> na hora.<br/>...Ou simplesmente "
+"desabilite! <br/>Por que não verificar as opções de configuração, enquanto "
+"você está nela? "
+
+msgid "Select Archives"
+msgstr ""
+
+msgid "Run Batch Operations on selection"
+msgstr ""
+
+msgid "Clear selection"
+msgstr ""
+
+msgid "Select All in Page"
+msgstr ""
+
+# ------End of Index.html.tt2------
+# ------Start of Login.html.tt2------
+msgid "This page requires you to log on."
+msgstr "Essar página requer um log ativo."
+
+msgid "Admin Password:"
+msgstr "Senha do Administrador:"
+
+msgid "Login"
+msgstr "Acesso"
+
+msgid "Wrong Password."
+msgstr "Senha Errada."
+
+msgid "<a href='\${url}'>Login</a> to toggle bookmark feature."
+msgstr "<a href='${url}'>Acesso</a> para alternar o recurso de marcação."
+
+# ------End of Login.html.tt2------
+# ------Start of Logs.html.tt2------
+msgid "Application Logs"
+msgstr "Logs das Aplicações"
+
+msgid "You can check LANraragi logs here for debugging purposes."
+msgstr ""
+"Você pode verificar os logs do LANraragi aqui com a finalidade de depuração."
+
+msgid "By default, this view only shows the last 100 lines of each logfile, newest lines last."
+msgstr ""
+"Por padrão, esta visualização mostra apenas as últimas 100 linhas de cada "
+"arquivo de log, com as linhas mais recentes por último."
+
+msgid "General Logs pertain to the main application."
+msgstr "Os registros gerais pertencem ao aplicativo principal."
+
+msgid "Shinobu Logs correspond to the Background Worker."
+msgstr "Logs Shinobu correspondente ao Background Worker."
+
+msgid "Plugin Logs are reserved for metadata plugins only."
+msgstr "Os Logs de Plugins são reservados apenas para plugins com metadata."
+
+msgid "Mojolicious logs won't tell much unless you're running Debug Mode."
+msgstr ""
+"Os logs de Mojolicious não revelam muita coisa se não estiverem rodando no "
+"Modo Depuração."
+
+msgid "Redis logs won't be available from here if you're running from source!"
+msgstr ""
+"Os logs Redis não estarão disponíveis a partir daqui se você não estiver "
+"rodando da fonte!"
+
+msgid "Currently Viewing:"
+msgstr "Visualização Atual: "
+
+msgid "general"
+msgstr "geral"
+
+msgid "Refresh"
+msgstr "Atualizar"
+
+msgid "Lines:"
+msgstr "Linhas: "
+
+msgid "View LANraragi Logs"
+msgstr "Visualizar Logs do LANraragi"
+
+msgid "View Shinobu Logs"
+msgstr "Visualizar os Logs do Shinobu"
+
+msgid "View Plugin Logs"
+msgstr "Visualizar os Logs do Plugin"
+
+msgid "View Mojolicious Logs"
+msgstr "Visualizar os Logs do Mojolicious"
+
+msgid "View Redis Logs"
+msgstr "Visualizar os Logs do Redis"
+
+msgid "Return to Library"
+msgstr ""
+
+# ------End of Logs.html.tt2------
+# ------Start of Plugins.html.tt2------
+msgid "Plugin Configuration"
+msgstr "Configuração de Plugins"
+
+msgid "Enable/Disable Auto-Plugin on metadata plugins by checking the toggles."
+msgstr ""
+"Habilitar/desabilitar o plugin automático em plugins de metadados apenas "
+"marcando as opções."
+
+msgid "Plugins will be automatically used on new archives if they're toggled here."
+msgstr ""
+"Plugins serão usados automaticamente nos novos arquivos se eles forem "
+"alterados aqui."
+
+msgid "If they have configuration variables, you can set them here as well."
+msgstr ""
+"Caso eles tenham variáveis de configuração, você também pode defini-las aqui."
+
+msgid "You can also trigger Scripts here. Triggering a script will save your Plugin settings beforehand."
+msgstr ""
+"Você também pode acionar os scripts aqui. Acionar um script para salvar as "
+"configurações do plugin antecipadamente."
+
+msgid "Login Plugins"
+msgstr "Plugins de Acesso"
+
+msgid "Downloaders"
+msgstr "Descarregadores"
+
+msgid "Scripts"
+msgstr "Scripts"
+
+msgid "Metadata Plugins"
+msgstr "Plugins dos Metadados"
+
+msgid "Allow Plugins to replace archive titles:"
+msgstr "Permitir que os plugins substituam os títulos do arquivo:"
+
+msgid "If enabled, metadata plugins will be able to change the title of your archives alongside adding tags to them."
+msgstr ""
+"Se ativados, os plugins de metadados poderão alterar o título dos seus "
+"arquivos e adicionar etiquetas a eles."
+
+msgid "A script is running..."
+msgstr "Um script em execução..."
+
+msgid "Save Plugin Configuration"
+msgstr "Salvar a Configuração do Plugin"
+
+msgid "Upload Plugin"
+msgstr "Upload do Plugin"
+
+msgid "Return to Library"
+msgstr ""
+
+msgid "This plugin will trigger on URLs matching this regex!"
+msgstr "Este plugin será acionado em URLs que correspondam a esta regex!"
+
+msgid "This plugin depends on the login plugin"
+msgstr "Este plugin depende do plugin de login"
+
+msgid "Trigger Script"
+msgstr "Script de Gatilho"
+
+# ------End of Plugins.html.tt2------
+# ------Start of Reader.html.tt2------
+msgid "Done reading? Go back to Archive Index"
+msgstr "Terminou de ler? Volte ao Índice do Arquivo"
+
+msgid "View full-size image"
+msgstr "Ver imagem em tamanho real"
+
+msgid "Switch to another random archive"
+msgstr "Mudar para outro arquivo aleatório"
+
+msgid "Archive Overview"
+msgstr ""
+
+msgid "Admin Options"
+msgstr "Opções do Administrador"
+
+msgid "Set this Page as Thumbnail"
+msgstr "Definir esta Página como Miniatura"
+
+msgid "Set the currently opened page as the thumbnail for this archive."
+msgstr ""
+"Defina a página aberta no momento asim como a miniatura para esse arquivo."
+
+msgid "Clean Archive Cache"
+msgstr "Limpar Arquivo do Cache"
+
+msgid "Edit Archive Metadata"
+msgstr "Editar Metadados do Arquivo"
+
+msgid "Delete Archive"
+msgstr "Apagar o Arquivo"
+
+msgid "Categories"
+msgstr "Categorias"
+
+msgid "Add to : "
+msgstr "Adicionar para : "
+
+msgid " -- No Category -- "
+msgstr ""
+
+msgid "Add Archive to Category"
+msgstr "Adicionar a Categoria do Arquivo"
+
+msgid "Pages"
+msgstr "Páginas"
+
+msgid "Working on it..."
+msgstr "Trabalhando nisso..."
+
+msgid "You can navigate between pages using:"
+msgstr "Você pode navegar entras as páginas usando:"
+
+msgid "The arrow icons"
+msgstr "Os ícones de seta"
+
+msgid "The a/d keys"
+msgstr "As chaves a/d"
+
+msgid "Your keyboard arrows (and the spacebar)"
+msgstr "As setas do seu teclado (e a barra de espaço)"
+
+msgid "Touching the left/right side of the image."
+msgstr "Tocando no lado esquerdo/direito da imagem."
+
+msgid "Other keyboard shortcuts:"
+msgstr "Outros atalhos do teclado:"
+
+msgid "M: toggle manga mode (right-to-left reading)"
+msgstr "M: alternar para modo mangá (leitura da direita para a esquerda)"
+
+msgid "O: show advanced reader options."
+msgstr "O: mostrar as opções avançadas do leitor."
+
+msgid "P: toggle double page mode"
+msgstr "P: alternar o modo de página dupla"
+
+msgid "Q: bring up the thumbnail index and archive options."
+msgstr "Q: abra o índice de miniaturas e as opções do arquivo."
+
+msgid "R: open a random archive."
+msgstr "R: abrir um arquivo aleatório."
+
+msgid "F: toggle fullscreen mode"
+msgstr "F: alternar para modo tela cheia"
+
+msgid "B: toggle bookmark"
+msgstr "B: modo alternativo de tela cheia"
+
+msgid "To return to the archive index, touch the arrow pointing down or use Backspace."
+msgstr ""
+"Para retornar ao índice do arquivo, toque na seta que aponta para baixo ou "
+"utilize a Barra de Espaços."
+
+msgid "Reader Options"
+msgstr "Opções do Leitor"
+
+msgid "Those options save automatically -- Click around and find out!"
+msgstr "Essas opções são salvas automaticamente -- Clique e descubra!"
+
+msgid "Fit display to"
+msgstr "Ajustar a exibição para"
+
+msgid "Container"
+msgstr "Contêiner"
+
+msgid "Width"
+msgstr "Largura"
+
+msgid "Height"
+msgstr "Altura"
+
+msgid "Container Width (in pixels or percentage)"
+msgstr "Largura do contêiner (em pixels ou porcentagem)"
+
+msgid "The default value is 1200px, or 90% in Double Page Mode."
+msgstr "O valor padrão é de 1200px, ou 90% no Modo de Página Dupla."
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Page Rendering"
+msgstr "Página Renderizando"
+
+msgid "Single"
+msgstr "Único"
+
+msgid "Double"
+msgstr "Duplo"
+
+msgid "Reading Direction"
+msgstr ""
+
+msgid "Left to Right"
+msgstr "Da Esquerda para a Direita"
+
+msgid "Right to Left"
+msgstr "Da Direita para a Esquerda"
+
+msgid "How many images to preload"
+msgstr "Quantas imagens para pré-carregar"
+
+msgid "The default is two images."
+msgstr "O padrão são duas imagens."
+
+msgid "Header"
+msgstr ""
+
+msgid "Visible"
+msgstr "Visível"
+
+msgid "Hidden"
+msgstr "Ocultar"
+
+msgid "Show Archive Overlay by default"
+msgstr "Mostrar a Sobreposição do Arquivo por padrão"
+
+msgid "This will show the overlay with thumbnails every time you open a new Reader page."
+msgstr ""
+"Isso mostrará a sobreposição com miniaturas sempre que você abrir uma nova "
+"página do Leitor."
+
+msgid "Enabled"
+msgstr "Ativado"
+
+msgid "Disabled"
+msgstr "Desativado"
+
+msgid "Progression Tracking"
+msgstr "Acompanhamento da Progressão"
+
+msgid "Disabling tracking will restart reading from page one every time you reopen the reader."
+msgstr ""
+"Desabilitar a progressão vai reiniciar a leitura da primeira página sempre "
+"que você reabrir o leitor."
+
+msgid "Infinite Scrolling"
+msgstr "Rolagem Infinita"
+
+msgid "Display all images in a vertical view in the same page."
+msgstr ""
+"Exibir todas as imagens em uma visualização vertical nessa mesma página."
+
+msgid "Help"
+msgstr "Ajuda"
+
+msgid "Reading Direction"
+msgstr "Direção de Leitura"
+
+msgid "Archive Overview"
+msgstr "Visão Geral do Arquivo"
+
+msgid "FullScreen"
+msgstr "Tela Cheia"
+
+msgid "Toggle Bookmark"
+msgstr "Alterar o Marcador"
+
+# ------End of Reader.html.tt2------
+# ------Start of Stats.html.tt2------
+msgid "Library Statistics"
+msgstr "Estatísticas da Biblioteca"
+
+msgid "Archives on record"
+msgstr "Arquivos registrados"
+
+msgid "Different tags existing"
+msgstr "Diferentes etiquetas existentes"
+
+msgid "in content folder"
+msgstr "na pasta do conteúdo"
+
+msgid "pages read"
+msgstr "ler páginas"
+
+msgid "Tag Cloud"
+msgstr "Etiqueta da Nuvem"
+
+msgid "Asking the great powers that be for your tag statistics..."
+msgstr ""
+"Pedindo aos grandes poderes que foram constituídos com as suas estatísticas "
+"das etiquetas..."
+
+msgid "Detailed Stats"
+msgstr "Estatísticas Detalhadas"
+
+msgid "(These statistics only show tags that appear at least twice in your database.)"
+msgstr ""
+"(Essas estatísticas mostram apenas a etiqueta que aparece pelo menos duas "
+"vezes no seu banco de dados.)"
+
+msgid "Return to Library"
+msgstr ""
+
+# ------End of Stats.html.tt2------
+# ------Start of Upload.html.tt2------
+msgid "Upload Center"
+msgstr "Centro de Upload"
+
+msgid "Adding Archives to the Library"
+msgstr "Adicionando os Arquivos à Biblioteca"
+
+msgid "Add files to your LANraragi instance from your computer, or the Internet directly."
+msgstr ""
+"Adicione arquivos à sua instância no LANraragi do seu computador ou "
+"diretamente na Internet."
+
+msgid "Add uploaded files to category:"
+msgstr "Adicionar arquivos enviados à categoria:"
+
+msgid " -- No Category -- "
+msgstr " -- Sem Categoria -- "
+
+msgid "From your computer"
+msgstr "Do seu computador"
+
+msgid "You can drag and drop files into this window, or click the upload button."
+msgstr ""
+"Você pode arrastar e soltar arquivos nesta janela, ou clicar no botão de "
+"upload."
+
+msgid "Add from your computer"
+msgstr "Adicione do seu computador"
+
+msgid "From the Internet"
+msgstr "Da Internet"
+
+msgid "You can download files from remote URLs directly into LANraragi from here."
+msgstr ""
+"Pode descarregar os ficheiros de URLs remotas diretamente para o LANraragi a "
+"partir daqui."
+
+msgid "Download jobs will keep going even if you close this window!"
+msgstr "Os serviços de descargas continuarão mesmo que feche essa janela!"
+
+msgid "Type in your URLs (separated by a newline), and click the download button."
+msgstr ""
+"Digite as suas URLs (separadas por uma nova linha) e clique no botão de "
+"descarga."
+
+msgid "If a Downloader plugin is compatible with the URL, it'll be automatically used."
+msgstr ""
+"Se um <a href=\"[% c.url_for(\"/config/plugins\") %]\">plugin de descargas</"
+"a> for compatível com a URL, será utilizado automaticamente."
+
+msgid "URL(s) to download:"
+msgstr "URL(s) para descarregar:"
+
+msgid "Add from URL(s)"
+msgstr "Adicionar a partir da URL(s)"
+
+msgid "Return to Library"
+msgstr "Voltar a Biblioteca"
+
+# ------End of Upload.html.tt2------
+msgid "Rescan Archive Directory"
+msgstr "Verificar novamente o diretório de arquivos"
+
+msgid "Click this button to trigger a rescan of the Archive Directory in case you're missing files, or some data such as total page counts."
+msgstr ""
+"Clique neste botão para acionar uma nova verificação do Diretório de "
+"Arquivos caso esteja faltando os arquivos, <br>ou alguns dados, como a "
+"contagem total de páginas. <br>"
+
+# ------Stary of i18n.html.tt2------
+msgid "Backup restored!"
+msgstr "Backup restaurado!"
+
+msgid "An error occured while restoring the backup.<br/> Please check the server logs and that your JSON is correctly formatted."
+msgstr ""
+"Ocorreu um erro ao restaurar o backup.<br/> Por favor verifique os logs do "
+"servidor e se o seu JSON está formatado corretamente."
+
+msgid "Backup generation in progress..."
+msgstr ""
+
+msgid "Uploading backup file..."
+msgstr ""
+
+msgid "Backup complete! Download will start automatically."
+msgstr ""
+
+msgid "Couldn't load the complete archive list! Please reload the page."
+msgstr ""
+"Não foi possível carregar a lista completa do arquivo! Recarregue a página."
+
+msgid "Couldn't load the tag statistics! Please reload the page."
+msgstr ""
+"Não foi possível carregar as estatísticas das etiquetas! Recarregue a página."
+
+msgid "Error getting untagged archives!"
+msgstr "Erro ao obter arquivos sem etiquetas!"
+
+msgid "Are you sure you want to delete this archive?"
+msgstr "Tem certeza de que deseja excluir esse arquivo?"
+
+msgid "Are you sure you want to delete the selected archives?"
+msgstr "Tem certeza de que deseja excluir os arquivos selecionados?"
+
+msgid "This action cannot be undone!"
+msgstr "Esta ação não pode ser desfeita!"
+
+msgid "This action (truly) cannot be undone!"
+msgstr "Esta ação (verdadeiramente) não pode ser desfeita!"
+
+msgid "Yes, delete it!"
+msgstr "Sim, exclua isso!"
+
+msgid "No, keep it!"
+msgstr "Não, fique com ele!"
+
+msgid "Error while deleting cache! Check application logs."
+msgstr "Erro ao excluir o cache! Verifique os logs do aplicativo."
+
+msgid "Error while processing request"
+msgstr "Erro ao processar a solicitação"
+
+msgid "Error checking Minion job status"
+msgstr "Erro ao verificar o status de serviço do Minion"
+
+msgid "Saved!"
+msgstr "Salvo!"
+
+msgid "Error saving data"
+msgstr "Erro ao salvar dados"
+
+msgid "Started Batch Operation..."
+msgstr "Iniciada a Operação em Lote..."
+
+msgid "Batch Operation complete!"
+msgstr "Operação em Lote concluída!"
+
+msgid "An error occured during batch tagging!"
+msgstr "Ocorreu um erro durante a etiquetagem em lote!"
+
+msgid "Please check application logs."
+msgstr "Por favor, verifique os registros do aplicativo."
+
+msgid "Error! Terminating session."
+msgstr "Erro! Encerrando a sessão."
+
+msgid "Sleeping for \${x} seconds."
+msgstr "Dormindo por ${x} segundos."
+
+msgid "Error while processing ID \${id} (\${msg})"
+msgstr "Erro ao processar o ID ${id} (${msg})"
+
+msgid "Processed ID \${id} with \"\${plug}\" (Added tags: \${tags})"
+msgstr "ID processado ${id} com \"${plug}\" (Tags adicionadas: ${tags})"
+
+msgid "Deleted ID \${id} (Filename: \${filename})"
+msgstr "ID excluído ${id} (Nome do arquivo: ${filename})"
+
+msgid "Replaced tags for ID \${id} (New tags: \${tags})"
+msgstr "Etiquetas trocadas para o ID ${id} (Novas etiquetas: ${tags})"
+
+msgid "Added ID \${id} to category \${category}! (\${msg})"
+msgstr "O ID ${id} adicionado à categoria ${category}! (${msg})"
+
+msgid "Cleared new flag for ID \${id}!"
+msgstr "Nova flag renovadas para o ID ${id}!"
+
+msgid "Unknown operation \${oper} (\${msg})"
+msgstr "Operação desconhecida ${oper} (${msg})"
+
+msgid "Changed title to: \${title}"
+msgstr "Título alterado para: ${title}"
+
+msgid "Reloading page in 5 seconds to account for deleted archives..."
+msgstr ""
+"Recarregando a página em 5 segundos para contabilizar os arquivos "
+"excluídos..."
+
+msgid "Cancelling Batch Operation..."
+msgstr "Cancelando a operação em Lote..."
+
+msgid "Enter a name for the new category"
+msgstr "Digite um nome para a nova categoria"
+
+msgid "My Category"
+msgstr "Minha Categoria"
+
+msgid "Please enter a category name."
+msgstr "Por favor, insira um nome da categoria."
+
+msgid "No category"
+msgstr "Nenhuma categoria"
+
+msgid "Error getting categories from server"
+msgstr "Erro ao obter as categorias do servidor"
+
+msgid "Error modifying category"
+msgstr "Erro ao modificar a categoria"
+
+msgid "The category will be deleted permanently."
+msgstr "A categoria será excluída permanentemente."
+
+msgid "Category deleted!"
+msgstr "Categoria apagada!"
+
+msgid "Error deleting category"
+msgstr "Erro ao excluir categoria"
+
+msgid "Writing a Predicate"
+msgstr "Escrevendo um Atributo"
+
+msgid "Predicates follow the same syntax as searches in the Archive Index. Check the Documentation for more information."
+msgstr ""
+"Os atributos seguem a mesma sintaxe das pesquisas no Índice do Arquivo. "
+"Consulte a <a href="
+"\"https://sugoi.gitbook.io/lanraragi/basic-operations/searching\""
+">Documentação</a> para obter mais informações."
+
+msgid "Background Worker restarted!"
+msgstr "Background Worker reiniciado!"
+
+msgid "Error restarting Worker:"
+msgstr "Error ao reiniciar Worker:"
+
+msgid "Content folder rescan started!"
+msgstr "Nova verificação na pasta do conteúdo foi iniciada!"
+
+msgid "Error starting content folder rescan:"
+msgstr "Erro ao iniciar uma nova verificação da pasta de conteúdo:"
+
+msgid "Error while querying Shinobu status:"
+msgstr "Erro ao consultar o status do Shinobu:"
+
+msgid "About Plugins"
+msgstr "Sobre os Plugins"
+
+msgid "You can use plugins to automatically fetch metadata for this archive. <br/> Just select a plugin from the dropdown and hit Go! <br/> Some plugins might provide an optional argument for you to specify. If that's the case, a textbox will be available to input said argument."
+msgstr ""
+"Você pode utilizar os plugins para buscar os metadados automaticamente para "
+"esse arquivo. <br/> Basta selecionar um plugin no menu suspenso e clicar em "
+"Ir! <br/> Alguns plugins podem fornecer um argumento opcional para você "
+"especificar. Nesse caso, uma caixa de texto estará disponível para inserir o "
+"argumento."
+
+msgid "Metadata saved!"
+msgstr "Metadados salvos!"
+
+msgid "Error saving archive metadata"
+msgstr "Error ao salvar o arquivo de metadado"
+
+msgid "Error while fetching tags"
+msgstr "Erro ao buscar as etiquetas"
+
+msgid "Archive title changed to"
+msgstr "Título do arquivo alterado para"
+
+msgid "Archive summary updated!"
+msgstr "Resumo do arquivo atualizado!"
+
+msgid "Added the following tags"
+msgstr "Adicionadas as seguintes tags"
+
+msgid "No new tags added!"
+msgstr "Nenhuma nova tag adicionada!"
+
+# Do not translate _START_, _END_ or _TOTAL_.
+msgid "Showing _START_ to _END_ of _TOTAL_ ancient chinese lithographies."
+msgstr "Exibindo _START_ to _END_ of _TOTAL_ litografias chinesas antigas."
+
+msgid "No archives to show you! Try <a href=\"\${url}\")>uploading some</a>?"
+msgstr ""
+"Nenhum arquivo para mostrar! Tente <a href=\"${url}\")>envio de alguns</a>?"
+
+msgid "Welcome to LANraragi \${version}!"
+msgstr "Bem-vindo ao LANraragi ${version}!"
+
+msgid "If you want to perform advanced operations on an archive, remember to just right-click its name. Happy reading!"
+msgstr ""
+"Se você quiser realizar as operações avançadas em um arquivo, lembre-se de "
+"clicar com o botão direito do mouse no nome dele. Boa leitura!"
+
+msgid "Error getting basic server info."
+msgstr "Erro ao obter informações básicas do servidor."
+
+msgid "You're running in Debug Mode!"
+msgstr "Você está executando o Modo de Depuração!"
+
+msgid "Advanced server statistics can be viewed <a href=\"\${url}\")>here</a>."
+msgstr ""
+"Estatísticas avançadas do servidor podem ser visualizadas <a href=\"${url}\""
+")>aqui</a>."
+
+msgid "Enter a tag namespace for this column"
+msgstr "Insira um namespace da etiqueta para essa coluna"
+
+msgid "Enter a full namespace without the colon, e.g \"artist\"."
+msgstr ""
+"Digite um namespace completo sem os dois pontos, por exemplo \"artista\"."
+
+msgid "If you have multiple tags with the same namespace, only the last one will be shown in the column."
+msgstr ""
+"Se você tiver várias etiquetas com o mesmo namespace, somente a última será "
+"exibida na coluna."
+
+msgid "Tag namespace"
+msgstr "Etiqueta do namespace"
+
+msgid "Please enter a tag namespace."
+msgstr "Por favor insira o namespace da etiqueta."
+
+msgid "Randomly Picked"
+msgstr "Selecionado Aleatoriamente"
+
+msgid "New Archives"
+msgstr "Novos Arquivos"
+
+msgid "Untagged Archives"
+msgstr "Arquivos não etiquetados"
+
+msgid "On Deck"
+msgstr "No Ponto"
+
+msgid "Error getting carousel data!"
+msgstr "Erro ao obter os dados do carrossel!"
+
+msgid "Edit this column"
+msgstr "Editar essa coluna"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Tags"
+msgstr "Etiquetas"
+
+msgid "Header"
+msgstr "Cabeçalho"
+
+msgid "A new version of LANraragi (\${version}) is available!"
+msgstr "A nova versão do LANraragi (${version}) está disponível!"
+
+msgid "Click here to check it out."
+msgstr "Clique aqui para conferir."
+
+msgid "Error getting changelog for new version"
+msgstr "Erro ao obter o changelog para a nova versão"
+
+msgid "Couldn't load data for \${id}!"
+msgstr "Não foi possível carregar dados para o ${id}!"
+
+msgid "Github API rate limit exceeded."
+msgstr "Limite de taxa da API do Github foi excedido."
+
+msgid "Github API returned status: \${status}"
+msgstr "Status de retorno da API do Github: ${status}"
+
+msgid "This archive isn't in any category."
+msgstr "Este arquivo não está em nenhuma categoria."
+
+msgid "No Categories yet..."
+msgstr "Sem Categorias ainda..."
+
+msgid "Remove rating"
+msgstr "Remover a classificação"
+
+msgid "Click here to display new archives only."
+msgstr "Clique aqui para exibir apenas novos arquivos."
+
+msgid "Click here to display untagged archives only."
+msgstr "Clique aqui para exibir somentes arquivos sem etiquetas."
+
+msgid "Click here to display archives in this category only."
+msgstr "Clique aqui para exibir somente os arquivos dessa categoria."
+
+msgid "Your Reading Progression is now saved on the server!"
+msgstr "A Progressão de Sua Leitura foi salva no servidor!"
+
+msgid "You seem to have some local progression hanging around -- Please wait warmly while we migrate it to the server for you."
+msgstr ""
+"Parece que você tem algo em progresso localmente por aí. Aguarde enquanto "
+"fazemos a migração do servidor para você."
+
+msgid "Error while migrating local progression to server"
+msgstr "Erro ao migrar o progresso local para o servidor"
+
+msgid "Reading Progression has been fully migrated"
+msgstr "O progresso de leitura foi totalmente migrada"
+
+msgid "You'll have to reopen archives in the Reader to see the migrated progression values."
+msgstr ""
+"Você terá que reabrir os arquivos no Leitor para ver os valores migrados no "
+"progresso."
+
+msgid "Plugin uploaded successfully!"
+msgstr "Plugin carregado com sucesso!"
+
+msgid "The plugin \${name} has been successfully added. Refresh the page to see it."
+msgstr ""
+"O plugin ${name} foi adicionado com sucesso. Atualize a página para vê-lo."
+
+msgid "Error uploading plugin"
+msgstr "Erro ao carregar o plugin"
+
+msgid "Successfully set page \${page} as the thumbnail!"
+msgstr "A página ${page} foi definida com sucesso assim como a miniatura!"
+
+msgid "Error updating thumbnail"
+msgstr "Erro ao atualizar a miniatura"
+
+msgid "Error clearing new flag"
+msgstr "Error ao limpar a nova flag"
+
+msgid "Error getting the archive's imagelist."
+msgstr "Erro ao obter a lista de imagens do arquivo."
+
+msgid "This archive seems to be in RAR format!"
+msgstr "Esse arquivo parece estar no formato RAR!"
+
+msgid "RAR archives might not work properly in LANraragi depending on how they were made. If you encounter errors while reading, consider converting your archive to zip."
+msgstr ""
+"Arquivos RAR podem não funcionar corretamente no LANraragi, dependendo de "
+"como foram criados. Se encontrar erros durante a leitura, considere "
+"converter seu arquivo para zip."
+
+msgid "EPUB support in LANraragi is minimal"
+msgstr "O suporte a EPUB no LANraragi é mínimo"
+
+msgid "EPUB books will only show images in the Web Reader, and potentially out of order. If you want text support, consider pairing LANraragi with an OPDS reader."
+msgstr ""
+"Livros en EPUB exibirão apenas imagens no Leitor Web e, potencialmente, fora "
+"de ordem. Se você deseja suporte a texto, considere emparelhar o LANraragi "
+"com um <a href='https://sugoi.gitbook.io/lanraragi/advanced-usage/external-"
+"readers#generic-opds-readers'>leitor OPDS.</a>"
+
+msgid "This comic streams its pages from the web"
+msgstr ""
+
+msgid "CBW files contain no images themselves; their pages are fetched from remote URLs on demand. Reading will fail for any page whose source is no longer online."
+msgstr ""
+
+msgid "Navigation Help"
+msgstr "Ajuda de Navegação"
+
+msgid "Error updating reading progression"
+msgstr "Erro ao atualizar a progresso da leitura"
+
+msgid "Page \${page}"
+msgstr "Páginas ${page}"
+
+msgid "The page thumbnailing job didn't conclude properly. Your archive might be corrupted."
+msgstr ""
+"O serviço da miniatura da página não foi concluída corretamente. Seu arquivo "
+"pode estar corrompido."
+
+msgid "A script is already running."
+msgstr "Um script já está em execução."
+
+msgid "Please wait for it to finish before starting a new one."
+msgstr "Por favor, aguarde a finalização desse antes de iniciar uma nova."
+
+msgid "An error occured while running the script"
+msgstr "Um error ocorreu enquanto o script está em execução"
+
+msgid "Script result"
+msgstr "Resultado do Script"
+
+msgid "Script failed with error: \${error}"
+msgstr "Script falhou com error: ${error}"
+
+msgid "Temporary folder cleaned!"
+msgstr "Pasta temporária limpa!"
+
+msgid "Error cleaning temporary folder"
+msgstr "Erro ao limpar a pasta temporária"
+
+msgid "Threw away the cache!"
+msgstr "Joguei o cache fora!"
+
+msgid "Error clearing the cache"
+msgstr "Erro ao limpar o cache"
+
+msgid "Threw away the search cache!"
+msgstr "Joguei fora o cache da pesquisa!"
+
+msgid "All archives are no longer new!"
+msgstr "Todos os arquivos não são mais novos!"
+
+msgid "Error during cleanup procedure"
+msgstr "Erro durante o procedimento de limpeza"
+
+msgid "Are you sure you want to wipe the database?"
+msgstr "Tem certeza de que deseja limpar o banco de dados?"
+
+msgid "Sayonara! Redirecting you..."
+msgstr "Sayonara! Redirecionando você..."
+
+msgid "Successfully cleaned the database and removed \${entries} entries."
+msgstr ""
+"O banco de dados foi limpo com sucesso e as entradas ${entries} foram "
+"removidas."
+
+msgid "\${entries} other entries have been unlinked from the database and will be deleted on the next cleanup!"
+msgstr ""
+"Outras entradas ${entries} foram desvinculadas do banco de dados e serão "
+"excluídas na próxima limpeza!"
+
+msgid "Do a backup now if some files disappeared from your archive index."
+msgstr ""
+"Faça um backup agora caso alguns arquivos desapareçam do seu índice de "
+"arquivamento."
+
+msgid "Queued up a job to regenerate thumbnails! Stay tuned for updates or check the Minion console."
+msgstr ""
+"Enfileiramos um serviço para regenerar as miniaturas! Fique ligado nas "
+"atualizações ou confira o console do Minion."
+
+msgid "All thumbnails generated! Errors will be listed below if there were any."
+msgstr ""
+"Todas as miniaturas foram geradas! Os erros serão listados abaixo, se houver."
+
+msgid "Added \${id} to category \${cat}!"
+msgstr "Adicionado o ${id} à categoria ${cat}!"
+
+msgid "Removed \${id} from category \${cat}!"
+msgstr "Removido o ${id} da categoria ${cat}!"
+
+msgid "Couldn't delete archive file. <br/> (Maybe it has already been deleted beforehand?)"
+msgstr ""
+"Não foi possível excluir o arquivo compactado. <br/> (Talvez ele já tenha "
+"sido excluído anteriormente?)"
+
+msgid "Archive metadata has been deleted properly. <br> Please delete the file manually before returning to the archive index."
+msgstr ""
+"Os metadados do arquivo foram excluídos corretamente. <br> Exclua o arquivo "
+"manualmente antes de retornar ao índice do arquivo."
+
+msgid "Archive successfully deleted. Redirecting you..."
+msgstr "Arquivo deletado com sucesso. Redirecionando você..."
+
+msgid "Error while deleting archive"
+msgstr "Error quando excluía o arquivo"
+
+msgid "Processing your upload... (Job #\${jobid})"
+msgstr "Processando seu upload... (Serviço de #${jobid})"
+
+msgid "Downloading file... (Job #\${jobid})"
+msgstr "A descarregar o ficheiro... (Serviço de #${jobid})"
+
+msgid "Processing"
+msgstr "Processando"
+
+msgid "Completed"
+msgstr "Completado"
+
+msgid "Failed"
+msgstr "Falhou"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Click here to edit metadata."
+msgstr "Clique aqui para editar o metadados."
+
+msgid "Error while processing file."
+msgstr "Error enquanto está processando o arquivo."
+
+msgid "Error while downloading file."
+msgstr "Erro ao descarregar o ficheiro."
+
+msgid "Error sending job to Minion"
+msgstr "Error enviando serviço para o Minion"
+
+# ------End of i18n.html.tt2------
+# ------Start of Duplicates.html.tt2------
+msgid "Duplicate Detection"
+msgstr "Detecção Duplicada"
+
+msgid "This page allows you to search for potential duplicates in your library."
+msgstr ""
+"Esta página permite que você pesquise possíveis duplicatas em sua biblioteca."
+
+msgid "Clicking \"Start searching\" will start a background job to scan the entire library for dupes."
+msgstr ""
+"Clicar em \"Iniciar pesquisa\" iniciará um serviço em segundo plano para "
+"verificar toda a biblioteca em busca de arquivos duplicados."
+
+msgid "After which, you can select which archives to delete, and then delete them in bulk."
+msgstr ""
+"Depois disso, você pode selecionar quais arquivos deseja excluir e excluí-"
+"los em massa."
+
+msgid "Found %1 duplicate group(s)."
+msgstr "Encontrado(s) %1 do(s) grupo(s) duplicado(s)."
+
+msgid "You can use the rules dropdown below to pre-select archives for deletion."
+msgstr ""
+"Você pode usar o menu suspenso de regras abaixo para pré-selecionar arquivos "
+"para exclusão."
+
+msgid "For every duplicate group..."
+msgstr "Para cada grupo duplicado..."
+
+msgid "Keep all files"
+msgstr "Matenha todos os aquivos"
+
+msgid "Keep the file with the most tags"
+msgstr "Matenha todos os arquivos com mais etiquetas"
+
+msgid "Keep the file with the most pages"
+msgstr "Mantenha o arquivo com mais páginas"
+
+msgid "Keep the largest file"
+msgstr "Mantenha o maior arquivo"
+
+msgid "Keep the youngest file"
+msgstr "Mantenha o arquivo mais novo"
+
+msgid "Keep the oldest file"
+msgstr "Mantenha o arquivo mais antigo"
+
+msgid "Start searching for duplicates"
+msgstr "Começe buscando por arquivos duplicados"
+
+msgid "Search for duplicates again"
+msgstr "Buscar novamente arquivos duplicados"
+
+msgid "Delete all selected items"
+msgstr "Apagar todos os itens selecionados"
+
+msgid "Filename"
+msgstr "Nome do Arquivo"
+
+msgid "Filesize"
+msgstr "Tamanho do Arquivo"
+
+msgid "Action"
+msgstr "Ação"
+
+msgid "Searching for duplicates..."
+msgstr "Buscando por arquivos duplicados..."
+
+# ------End of Duplicates.html.tt2------
+msgid "Run Automatically"
+msgstr "Executa Automaticamente"
+
+msgid "Plugin Settings"
+msgstr "Ajustes do Plugin"
+
+msgid "No duplicates found!"
+msgstr "Não encontradou arquivos duplicados!"
+
+msgid "The maximum value allowed is 4GB."
+msgstr "O valor máximo permitido é de 4GB."
+
+msgid "Select the language for the user interface. Set to Automatic to use your browser's language preference."
+msgstr ""
+"Selecione a língua para a interface de utilizador. Escolha Automático para "
+"usar a preferência do navegador."
+
+#, fuzzy
+msgid "Authenticated Progress Tracking"
+msgstr "Acompanhamento do Progresso Protegido"
+
+msgid "If enabled, server-side progress will only be saved if you're logged in with a password, and will override clientside progress. This allows guests to browse without affecting the main user's progress."
+msgstr ""
+"Se ligado, progresso no lado do servidor apenas será salvo se estiveres "
+"autenticado com uma password e irá sobrepor-se ao progresso do cliente. Isto "
+"permite convidados a navegarem sem afetar o progresso do utilizador "
+"principal."
+
+#, fuzzy
+msgid "Combine with clientside progress tracking to allow unauthenticated users to track progress locally."
+msgstr ""
+"Combine com Acompanhamento do Progresso do Lado do Cliente para permitir "
+"utilizadores não autenticados a manter o seu progresso localmente."
+
+msgid "Copy link"
+msgstr "Copiar ligação"
+
+msgid "Rating"
+msgstr "Classificação"
+
+msgid "Set Rating"
+msgstr "Definir Classificação"
+
+msgid "Clear Rating"
+msgstr "Limpar Classificação"
+
+msgid " -- Select Rating -- "
+msgstr " -- Selecione Classificação -- "
+
+msgid "N: toggle auto next page"
+msgstr "N: Alternar avanço de página automático"
+
+msgid "Auto next page interval in seconds"
+msgstr "Tempo do avanço de página automático em segundos"
+
+msgid "The default is 10 seconds."
+msgstr "O predefinido é 10 segundos."
+
+msgid "Auto Next Page"
+msgstr "Avanço automático de Página"
+
+msgid "Link copied successfully."
+msgstr "Ligação copiada com sucesso."
+
+msgid "Copy failed."
+msgstr "Falha a copiar."
+
+msgid "Starting auto next page failed!"
+msgstr "Avanço automático de página não falhou a começar!"
+
+msgid "Please set the auto next page interval to a positive number."
+msgstr ""
+"Por favor definia o intervalo do avanço automático de página para um número "
+"positivo."
+
+msgid "Chapters"
+msgstr "Capítulos"
+
+msgid "Add Chapter at this Page"
+msgstr "Adicionar um Capítulo nesta Página"
+
+msgid "Edit Chapter name"
+msgstr "Editar nome do Capítulo"
+
+msgid "Delete Chapter"
+msgstr "Apagar Capítulo"
+
+msgid "Are you sure you want to delete this chapter/section?"
+msgstr "Tens a certeza que queres apagar este capítulo/secção?"
+
+msgid "Enter a title for this chapter/section:"
+msgstr "Introduza um título para este capítulo/secção:"
+
+msgid "Chapter added!"
+msgstr "Capítulo adicionado!"
+
+msgid "Error adding/removing chapter:"
+msgstr "Erro a adicionar/remover capítulo:"
+
+msgid "Untitled Chapter"
+msgstr "Capítulo sem nome"
+
+msgid "Archives with no tags or from your last selection have been pre-checked."
+msgstr ""
+"Arquivos sem etiquetas ou já selecionados anteriormente foram pré-marcados."
+
+msgid "Discard Selection"
+msgstr "Descartar seleção"
+
+msgid "Displaying ${n} Archives from previous selection."
+msgstr "Mostrando ${n} arquivos da seleção anterior."
+
+msgid "Tankoubons"
+msgstr "Tankoubons"
+
+msgid "No Tankoubons in your library yet."
+msgstr "Nenhum Tankoubon em sua biblioteca por enquanto."
+
+msgid "Archives"
+msgstr "Arquivos"
+
+msgid "No Archives in your library yet."
+msgstr "Sem Arquivos em sua biblioteca por enquanto."
+
+msgid "Automatic (browser default)"
+msgstr "Automático (padrão do navegador)"
+
+msgid "Disable OpenAPI Validation"
+msgstr "Desabilitar validação OpenAPI"

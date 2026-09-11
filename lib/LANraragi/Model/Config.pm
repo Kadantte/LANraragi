@@ -4,13 +4,17 @@ use strict;
 use warnings;
 use utf8;
 use Cwd 'abs_path';
-use Redis;
-use Encode;
+use URI::Escape;
+
 use Mojo::Util qw(xml_escape);
 use Minion;
+use Mojolicious;
 use Mojolicious::Plugin::Config;
 use Mojo::Home;
 use Mojo::JSON qw(decode_json);
+
+# Be very careful about importing LANraragi stuff; this file is used almost everywhere and it's easy to introduce dependency cycles!
+use LANraragi::Utils::Redis qw(redis_decode);
 
 # Find the project root directory to load the conf file
 my $home = Mojo::Home->new;
@@ -41,9 +45,20 @@ sub get_configdb { return $config->{redis_database_config} }
 # Database used to store search index and cache
 sub get_searchdb { return $config->{redis_database_search} }
 
+# Database used to store metrics
+sub get_metricsdb { return $config->{redis_database_metrics} }
+
+# Base URL for deployment under a path prefix
+sub get_baseurl { return "$config->{base_url_path}" }
+
 # Create a Minion object connected to the Minion database.
 sub get_minion {
-    my $miniondb = get_redisad . "/" . get_miniondb;
+    my $redisad = get_redisad;
+
+    # URL encode the unix socket path so it can be recognized as the host
+    if ( $redisad =~ m{^/} ) { $redisad = uri_escape($redisad); }
+
+    my $miniondb = $redisad . "/" . get_miniondb;
     my $password = get_redispassword;
 
     # If the password is non-empty, add the required delimiters
@@ -64,18 +79,23 @@ sub get_redis_search {
     return get_redis_internal(&get_searchdb);
 }
 
+sub get_redis_metrics {
+    return get_redis_internal(&get_metricsdb);
+}
+
 sub get_redis_internal {
 
-    my $db = $_[0];
+    my $db      = $_[0];
+    my $redisad = &get_redisad;
 
     # Default redis server location is localhost:6379.
     # Auto-reconnect on, one attempt every 2ms up to 3 seconds. Die after that.
     # Auth if password is set
     my $redis = Redis->new(
-        server    => &get_redisad,
+        ( $redisad =~ m{^/} ? ( sock => $redisad ) : ( server => $redisad ) ),
         debug     => $ENV{LRR_DEVSERVER} ? "1" : "0",
         reconnect => 3,
-        &get_redispassword ? (password => &get_redispassword) : ()
+        &get_redispassword ? ( password => &get_redispassword ) : ()
     );
 
     # Switch to specced database
@@ -93,8 +113,7 @@ sub get_redis_conf {
 
     if ( $redis->hexists( "LRR_CONFIG", $param ) ) {
 
-        # Call Utils::Database directly as importing it with use; would cause circular dependencies...
-        my $value = LANraragi::Utils::Database::redis_decode( $redis->hget( "LRR_CONFIG", $param ) );
+        my $value = redis_decode( $redis->hget( "LRR_CONFIG", $param ) );
 
         # Failsafe against blank config values
         unless ( $value =~ /^\s*$/ ) {
@@ -129,7 +148,7 @@ sub get_userdir {
 sub get_thumbdir {
 
     # Content path can be overriden by LRR_THUMB_DIRECTORY
-    my $dir = &get_redis_conf( "thumbdir", get_userdir() . "/thumb" );
+    my $dir = &get_redis_conf( "thumbdir", "./thumb" );
 
     if ( $ENV{LRR_THUMB_DIRECTORY} ) {
         $dir = $ENV{LRR_THUMB_DIRECTORY};
@@ -165,15 +184,27 @@ sub get_tagrules {
     );
 }
 
-sub get_htmltitle        { return xml_escape(&get_redis_conf( "htmltitle",       "LANraragi" )) }
-sub get_motd             { return xml_escape(&get_redis_conf( "motd",            "Welcome to this Library running LANraragi!" )) }
+sub get_disable_openapi {
+
+    # LRR_DISABLE_OPENAPI env var overrides the Redis config.
+    if ( $ENV{LRR_DISABLE_OPENAPI} ) {
+        return 1;
+    }
+
+    return &get_redis_conf( "disableopenapi", "0" );
+}
+
+sub get_htmltitle        { return xml_escape( &get_redis_conf( "htmltitle", "LANraragi" ) ) }
+sub get_motd             { return xml_escape( &get_redis_conf( "motd",      "Welcome to this Library running LANraragi!" ) ) }
 sub get_tempmaxsize      { return &get_redis_conf( "tempmaxsize",     "500" ) }
 sub get_pagesize         { return &get_redis_conf( "pagesize",        "100" ) }
 sub enable_pass          { return &get_redis_conf( "enablepass",      "1" ) }
 sub enable_nofun         { return &get_redis_conf( "nofunmode",       "0" ) }
 sub enable_cors          { return &get_redis_conf( "enablecors",      "0" ) }
+sub enable_metrics       { return &get_redis_conf( "enablemetrics",   "0" ) }
 sub get_apikey           { return &get_redis_conf( "apikey",          "" ) }
 sub enable_localprogress { return &get_redis_conf( "localprogress",   "0" ) }
+sub enable_authprogress  { return &get_redis_conf( "authprogress",    "0" ) }
 sub enable_tagrules      { return &get_redis_conf( "tagruleson",      "1" ) }
 sub enable_resize        { return &get_redis_conf( "enableresize",    "0" ) }
 sub get_threshold        { return &get_redis_conf( "sizethreshold",   "1000" ) }
@@ -186,5 +217,7 @@ sub get_hqthumbpages     { return &get_redis_conf( "hqthumbpages",    "0" ) }
 sub get_jxlthumbpages    { return &get_redis_conf( "jxlthumbpages",   "0" ) }
 sub get_replacedupe      { return &get_redis_conf( "replacedupe",     "0" ) }
 sub can_replacetitles    { return &get_redis_conf( "replacetitles",   "1" ) }
+sub get_language         { return &get_redis_conf( "language",        "auto" ) }
+sub get_excludednamespaces { return &get_redis_conf( "excludednamespaces", "source, date_added" ) }
 
 1;

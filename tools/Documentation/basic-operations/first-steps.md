@@ -2,9 +2,10 @@
 
 ## Quick To-Do List for newcomers
 
-![The default password for a new LRR install is "kamimamita".](<../.screenshots/login.png>)
+![The default password for a new LRR install is "kamimamita".](<../.gitbook/assets/login.png>)
 
 * [ ] Change Security Settings
+* [ ] Change Server Language (although you'll need English to read this documentation...)
 * [ ] Enable and configure wanted Plugins to tag your content
 * [ ] Move the Thumbnail Folder to a dedicated folder if you don't want them alongside your content
 * [ ] Change the default Content Folder to your personal folder, or start adding files to the default Content Folder!
@@ -35,6 +36,27 @@ If you don't want any page of the app to be accessible to outsiders, you should 
 If you enable No-Fun Mode, you'll have to set an **API Key** to be able to use the Public API methods. See more information in the API page.
 {% endhint %}
 
+## Server Language  
+
+By default, LANraragi will display its interface following the language your browser is set to. (Via Accept-Language headers).  
+
+If you dislike this behavior, you can set a specific language option for every browser instead in Server Settings.  
+LANraragi currently supports the following languages:  
+
+* English
+* French
+* Simplified Chinese
+* Traditional Chinese
+* German
+* Spanish
+* Japanese
+* Indonesian
+* Korean
+* Norwegian
+* Portuguese
+* Italian
+* Vietnamese  
+
 ## Content Folder
 
 One of LRR's core concepts is the **content folder.**\
@@ -46,7 +68,7 @@ This folder contains all the user-generated data:
 
 By default, this folder is placed at the root of the LRR installation, but you can configure it to use any folder on your machine instead. The content folder is subdirectory-aware, so you can easily drop-in an already sorted collection.
 
-The content folder can be read-only if you so desire, but the caveat is that the thumbnail subfolder (`/thumb`) needs write rights to function properly for the time being.  
+The content folder can be read-only if you so desire, but the caveat is that the thumbnail subfolder (`/thumb`) needs write rights to function properly for the time being.\
 See the section below if you want to move the thumbnail subfolder somewhere else.
 
 {% hint style="success" %}
@@ -59,7 +81,8 @@ The following formats are supported by LRR for Archives:
 * 7z/cb7
 * xz
 * pdf
-* epub (images only if viewed in the Web Client or through the Client API, potentially out of order)\\
+* epub (images only if viewed in the Web Client or through the Client API, potentially out of order)
+* cbw (ComicBookWeb: an XML file referencing remote page images by URL; LRR proxies and caches those images on demand)\\
 {% endhint %}
 
 {% hint style="info" %}
@@ -73,7 +96,7 @@ If you have a large number of archives (More than 500), you might want to ignore
 
 Starting with 0.7.7, the thumbnail folder can be dissociated from the Content Folder, if you want to move it to a SSD or keep your Content Folder fully read-only.
 
-![Thumbnail Options](../.screenshots/thumbchange.png)
+![Thumbnail Options](<../.gitbook/assets/thumbchange.png>)
 
 {% hint style="warning" %}
 There is no support for moving your thumbnails from the old folder to the new one, so make sure to move them manually once you've switched!
@@ -99,13 +122,13 @@ See the Adding Metadata section for more information.
 
 ## Uploading Archives
 
-![LRR Upload Center](../.screenshots/uploading.png)
+![LRR Upload Center](<../.gitbook/assets/uploading.png>)
 
-You can add archives to the application by either copying them to the content folder, or using the built-in uploader tool.  
-They'll be automatically indexed and added to the database.  
+You can add archives to the application by either copying them to the content folder, or using the built-in uploader tool.\
+They'll be automatically indexed and added to the database.\
 Plugins will also be ran automatically to try and fetch metadata for them, if you toggled them in **Plugin Configuration** previously.
 
-You can also **queue downloads** by giving URLs to the server in the uploader tool, which will then be downloaded to your content folder seamlessly.  
+You can also **queue downloads** by giving URLs to the server in the uploader tool, which will then be downloaded to your content folder seamlessly.\
 See the link below for more details.
 
 {% content-ref url="../advanced-usage/downloading.md" %}

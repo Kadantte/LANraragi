@@ -22,43 +22,27 @@ use_ok('LANraragi::Plugin::Metadata::nHentai');
 note('testing searching gallery by title ...');
 
 {
-    no warnings 'once', 'redefine';
-    local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger        = sub { return get_logger_mock(); };
-    local *LANraragi::Plugin::Metadata::nHentai::get_gallery_dom_by_title = sub { return; };
+    my $json = decode_json( Mojo::File->new("$SAMPLES/nh/002_search_results_empty.json")->slurp );
 
-    my $gID = LANraragi::Plugin::Metadata::nHentai::get_gallery_id_from_title("you will not find this");
+    no warnings 'once', 'redefine';
+    local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger = sub { return get_logger_mock(); };
+    local *LANraragi::Plugin::Metadata::nHentai::get_search_json   = sub { return $json; };
+
+    my $gID = LANraragi::Plugin::Metadata::nHentai::get_gallery_id_from_title("you will not find this", undef);
 
     is( $gID, undef, 'empty gallery ID' );
 }
 
 {
-    my $body = Mojo::File->new("$SAMPLES/nh/001_search_results.html")->slurp;
+    my $json = decode_json( Mojo::File->new("$SAMPLES/nh/001_search_results.json")->slurp );
 
-    no warnings 'once', 'redefine';
-    local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger        = sub { return get_logger_mock(); };
-    local *LANraragi::Plugin::Metadata::nHentai::get_gallery_dom_by_title = sub { return Mojo::DOM->new($body); };
-
-    my $gID = LANraragi::Plugin::Metadata::nHentai::get_gallery_id_from_title("a title that exists");
-
-    is( $gID, '999999', 'gallery ID' );
-}
-
-note('testing parsing JSON from HTML ...');
-
-{
     no warnings 'once', 'redefine';
     local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger = sub { return get_logger_mock(); };
+    local *LANraragi::Plugin::Metadata::nHentai::get_search_json   = sub { return $json; };
 
-    my $body = Mojo::File->new("$SAMPLES/nh/002_gid_52249.html")->slurp;
+    my $gID = LANraragi::Plugin::Metadata::nHentai::get_gallery_id_from_title("a title that exists", undef);
 
-    my $json = LANraragi::Plugin::Metadata::nHentai::get_json_from_html($body);
-
-    isa_ok( $json, 'HASH', 'json' );
-    is( $json->{id}, 52249, 'gallery ID' );
-    isa_ok( $json->{title}, 'HASH', 'json.title' );
-    is( $json->{title}{pretty}, 'Pieces 1', 'json.title.pretty' );
-    isa_ok( $json->{tags}, 'ARRAY', 'json.tags' );
-    is( scalar @{ $json->{tags} }, 6, 'tags count' );
+    is( $gID, '52249', 'gallery ID' );
 }
 
 note('testing getting tags from JSON ...');
@@ -67,8 +51,7 @@ note('testing getting tags from JSON ...');
     no warnings 'once', 'redefine';
     local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger = sub { return get_logger_mock(); };
 
-    my $body = Mojo::File->new("$SAMPLES/nh/002_gid_52249.html")->slurp;
-    my $json = LANraragi::Plugin::Metadata::nHentai::get_json_from_html($body);
+    my $json = decode_json( Mojo::File->new("$SAMPLES/nh/003_gid_52249.json")->slurp );
 
     my @tags = LANraragi::Plugin::Metadata::nHentai::get_tags_from_json($json);
 
@@ -81,8 +64,7 @@ note('testing getting tags from JSON ...');
     no warnings 'once', 'redefine';
     local *LANraragi::Plugin::Metadata::nHentai::get_plugin_logger = sub { return get_logger_mock(); };
 
-    my $body = Mojo::File->new("$SAMPLES/nh/002_gid_52249.html")->slurp;
-    my $json = LANraragi::Plugin::Metadata::nHentai::get_json_from_html($body);
+    my $json = decode_json( Mojo::File->new("$SAMPLES/nh/003_gid_52249.json")->slurp );
 
     my $title = LANraragi::Plugin::Metadata::nHentai::get_title_from_json($json);
 

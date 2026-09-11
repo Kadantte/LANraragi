@@ -1,4 +1,4 @@
-FROM difegue/lanraragi:nightly
+FROM lanraragi:test
 # Use the base LRR container to have a prepared test environment
 
 LABEL "name"="lrr-test"
@@ -13,7 +13,11 @@ LABEL "com.github.actions.color"="purple"
 USER root
 
 # Re-add devtools
-RUN apk add perl-utils perl-dev wget g++ make
+RUN apk update
+RUN apk add perl-utils perl-dev wget g++ make imagemagick imagemagick-perlmagick
+
+# Copy tests
+COPY --chown=koyomi:koyomi /tests tests
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

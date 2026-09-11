@@ -1,6 +1,10 @@
 /**
- * Batch Operations.
+ * Batch Operations
  */
+import * as LRR from "./mod/common.js";
+import * as Server from "./mod/server.js";
+import I18N from "i18n";
+
 const Batch = {};
 
 Batch.socket = {};
@@ -18,32 +22,31 @@ Batch.initializeAll = function () {
     $(document).on("click.start-batch", "#start-batch", Batch.startBatchCheck);
     $(document).on("click.restart-job", "#restart-job", Batch.restartBatchUI);
     $(document).on("click.cancel-job", "#cancel-job", Batch.cancelBatch);
-    $(document).on("click.server-config", "#server-config", () => LRR.openInNewTab("./config"));
-    $(document).on("click.plugin-config", "#plugin-config", () => LRR.openInNewTab("./config/plugins"));
-    $(document).on("click.return", "#return", () => { window.location.href = "/"; });
+    $(document).on("click.server-config", "#server-config", () => LRR.openInNewTab(new LRR.ApiURL("/config")));
+    $(document).on("click.plugin-config", "#plugin-config", () => LRR.openInNewTab(new LRR.ApiURL("/config/plugins")));
+    $(document).on("click.return", "#return", () => { window.location.href = new LRR.ApiURL("/"); });
+    $(document).on("click.batch-reset-selection", "#batch-reset-selection", Batch.loadAllArchives);
 
     Batch.selectOperation();
     Batch.showOverride();
 
-    // Load all archives, showing a spinner while doing so
-    $("#arclist").hide();
 
-    Server.callAPI("/api/archives", "GET", null, "Couldn't load the complete archive list! Please reload the page.",
-        (data) => {
-            // Parse the archive list and add <li> elements to arclist
-            data.forEach((archive) => {
-                const escapedTitle = LRR.encodeHTML(archive.title) + (archive.isnew === "true" ? " 🆕" : "");
-                const html = `<li><input type='checkbox' name='archive' id='${archive.arcid}' class='archive' ><label for='${archive.arcid}'>${escapedTitle}</label></li>`;
-                $("#arclist").append(html);
-            });
+    // If a selected subset of archives is present, load only those archives.
+    // Otherwise load the full archive list.
+    const msmSelection = localStorage.getItem("msmSelection");
+    if (msmSelection) {
+        try {
+            const ids = JSON.parse(msmSelection);
+            if (Array.isArray(ids) && ids.length > 0) {
+                Batch.loadSelectionOnly(ids);
+                return;
+            }
+        } catch (e) {
+            console.warn("Failed to parse msmSelection:", e);
+        }
+    }
 
-            Batch.checkUntagged();
-        },
-    )
-        .finally(() => {
-            $("#arclist").show();
-            $("#loading-placeholder").hide();
-        });
+    Batch.loadAllArchives();
 };
 
 /**
@@ -72,24 +75,102 @@ Batch.showOverride = function () {
 };
 
 /**
- * Check untagged archives, using the matching API endpoint.
+ * Load only the archives from the MSM selection, fetching each archive's metadata individually.
+ * Tankoubons are expanded to their constituent archives.
+ * Shows the MSM selection banner and pre-checks all loaded archives.
+ * @param {string[]} ids Array of archive IDs from msmSelection
  */
-Batch.checkUntagged = function () {
-    Server.callAPI("api/archives/untagged", "GET", null, "Error getting untagged archives!",
-        (data) => {
-            // Check untagged archives
-            data.forEach((id) => {
-                const checkbox = document.getElementById(id);
+Batch.loadSelectionOnly = function (ids) {
 
-                if (checkbox != null) {
-                    checkbox.checked = true;
-                    // Prepend matching <li> element to the top of the list
-                    checkbox.parentElement.parentElement.prepend(checkbox.parentElement);
-                }
+    const tankIds = ids.filter((id) => id.startsWith("TANK_"));
+    const archiveIds = ids.filter((id) => !id.startsWith("TANK_"));
+
+    // Acquire archive IDs from Tanks and merge with directly selected archive IDs, then fetch metadata for each archive ID
+    const tankFetches = tankIds.map((id) => 
+        Server.callAPI(`/api/tankoubons/${id}`, "GET", null, I18N.ArchiveListLoadFailure, (data) => {
+            archiveIds.push(...(data.archives || []));
+        }));
+        
+    Promise.all(tankFetches).then(() => {
+
+        const archiveFetches = archiveIds.map((id) =>
+            Server.callAPI(`/api/archives/${id}/metadata`, "GET", null, null, (data) => data)
+                .catch(() => null),
+        );
+
+        Promise.all(archiveFetches).then((results) => { 
+
+            const addedIds = new Set();
+
+            results.forEach((archive) => {
+                if (!archive) return;
+                const arcId = archive.arcid;
+                if (!arcId || addedIds.has(arcId)) return;
+                addedIds.add(arcId);
+                const escapedTitle = LRR.encodeHTML(archive.title) + (archive.isnew === "true" ? " 🆕" : "");
+                const html = `<li><input type='checkbox' name='archive' id='${arcId}' class='archive' checked><label for='${arcId}'>${escapedTitle}</label></li>`;
+                $("#archivelist").append(html);
             });
-        },
-    );
+
+            if (addedIds.size > 0) $("#no-archives-msg").hide();
+
+            // Show the MSM selection banner
+            $("#msm-banner-count").text(I18N.BatchSelectionBanner(ids.length));
+            $("#msm-banner").show();
+        }).finally(() => {
+            $("#arclist-container").show();
+            $("#loading-placeholder").hide();
+        });
+    });
 };
+
+/**
+ * Load the full archive list from the API.
+ * Hides the selection banner (if present) and prechecks untagged archives.
+ */
+Batch.loadAllArchives = function () {
+    $("#archivelist").empty();
+    $("#no-archives-msg").show();
+    $("#msm-banner").html("");
+    $("#arclist-container").hide();
+    $("#loading-placeholder").show();
+
+    // Clear selection if present
+    localStorage.removeItem("msmSelection");
+
+    Server.callAPI("/api/archives", "GET", null, I18N.ArchiveListLoadFailure,
+        (data) => {
+            data.forEach((archive) => {
+                const escapedTitle = LRR.encodeHTML(archive.title) + (archive.isnew === "true" ? " 🆕" : "");
+                const html = `<li><input type='checkbox' name='archive' id='${archive.arcid}' class='archive' ><label for='${archive.arcid}'>${escapedTitle}</label></li>`;
+                $("#archivelist").append(html);
+            });
+
+            if (data.length > 0) $("#no-archives-msg").hide();
+
+            Server.callAPI("/api/archives/untagged", "GET", null, I18N.UntaggedLoadFailure,
+                (data) => { preCheckInternal(data); },
+            );
+        },
+    ).finally(() => {
+        $("#arclist-container").show();
+        $("#check-uncheck").show();
+        $("#loading-placeholder").hide();
+    });
+};
+
+
+function preCheckInternal(ids) {
+    ids.forEach((id) => {
+        const checkbox = document.getElementById(id);
+
+        if (checkbox != null) {
+            checkbox.checked = true;
+            // Prepend matching <li> element to the top of the list
+            checkbox.parentElement.parentElement.prepend(checkbox.parentElement);
+        }
+    });
+}
 
 /**
  * Pop up a confirm dialog if operation is destructive.
@@ -97,11 +178,11 @@ Batch.checkUntagged = function () {
 Batch.startBatchCheck = function () {
     if (Batch.currentOperation === "delete") {
         LRR.showPopUp({
-            text: "Are you sure you want to delete the selected archives?",
+            text: I18N.ConfirmArchivesDeletion,
             icon: "warning",
             showCancelButton: true,
             focusConfirm: false,
-            confirmButtonText: "Yes, delete it!",
+            confirmButtonText: I18N.ConfirmYes,
             reverseButtons: true,
             confirmButtonColor: "#d33",
         }).then((result) => {
@@ -121,7 +202,7 @@ Batch.startBatchCheck = function () {
 Batch.startBatch = function () {
     $(".tag-options").hide();
 
-    $("#log-container").html("Started Batch Operation...\n************\n");
+    $("#log-container").html(I18N.BatchOperationStart + "\n************\n");
     $("#cancel-job").show();
     $("#restart-job").hide();
     $(".job-status").show();
@@ -167,12 +248,13 @@ Batch.startBatch = function () {
 
     let wsProto = "ws://";
     if (document.location.protocol === "https:") wsProto = "wss://";
-    Batch.socket = new WebSocket(`${wsProto + window.location.host}/batch/socket`);
+    let socket_path = new LRR.ApiURL("/batch/socket");
+    Batch.socket = new WebSocket(`${wsProto + window.location.host}${socket_path}`);
 
     Batch.socket.onopen = function () {
         const command = commandBase;
         command.archive = arcs.splice(0, 1)[0];
-        // eslint-disable-next-line no-console
+         
         console.log(command);
         Batch.socket.send(JSON.stringify(command));
     };
@@ -188,13 +270,14 @@ Batch.startBatch = function () {
         }
 
         if (timeout !== 0) {
-            $("#log-container").append(`Sleeping for ${timeout} seconds.\n`);
+            $("#log-container").append(I18N.BatchSleeping(timeout));
+            $("#log-container").append("\n");
         }
         // Wait timeout and pass next archive
         setTimeout(() => {
             const command = commandBase;
             command.archive = arcs.splice(0, 1)[0];
-            // eslint-disable-next-line no-console
+             
             console.log(command);
             Batch.socket.send(JSON.stringify(command));
         }, timeout * 1000);
@@ -212,40 +295,43 @@ Batch.updateBatchStatus = function (event) {
     const msg = JSON.parse(event.data);
 
     if (msg.success === 0) {
-        $("#log-container").append(`Error while processing ID ${msg.id} (${msg.message})\n\n`);
+        $("#log-container").append(I18N.BatchOperationError(msg.id, msg.message));
     } else {
         switch (Batch.currentOperation) {
-        case "plugin":
-            $("#log-container").append(`Processed ID ${msg.id} with "${Batch.currentPlugin}" (Added tags: ${msg.tags})\n\n`);
-            break;
-        case "delete":
-            $("#log-container").append(`Deleted ID ${msg.id} (Filename: ${msg.filename})\n\n`);
-            break;
-        case "tagrules":
-            $("#log-container").append(`Replaced tags for ID ${msg.id} (New tags: ${msg.tags})\n\n`);
-            break;
-        case "addcat":
-            // Append the message at the end of this log,
-            // as it can contain the warning about the ID already being in the category
-            $("#log-container").append(`Added ID ${msg.id} to category ${msg.category}! ${msg.message} \n\n`);
-            break;
-        case "clearnew": {
-            $("#log-container").append(`Cleared new flag for ID ${msg.id}\n\n`);
-            // Remove last character from matching row
-            const t = $(`#${msg.id}`).next().text().replace("🆕", "");
-            $(`#${msg.id}`).next().text(t);
-            break;
+            case "plugin":
+                $("#log-container").append(I18N.BatchSuccessPlugin(msg.id, Batch.currentPlugin, msg.tags));
+                break;
+            case "delete":
+                $("#log-container").append(I18N.BatchSuccessDelete(msg.id, msg.filename));
+                break;
+            case "tagrules":
+                $("#log-container").append(I18N.BatchSuccessTagRul(msg.id, msg.tags));
+                break;
+            case "addcat":
+                // Append the message at the end of this log,
+                // as it can contain the warning about the ID already being in the category
+                $("#log-container").append(I18N.BatchSuccessCategr(msg.id, msg.category, msg.message));
+                break;
+            case "clearnew": {
+                $("#log-container").append(I18N.BatchSuccessClrNew(msg.id));
+                // Remove last character from matching row
+                const t = $(`#${msg.id}`).next().text().replace("🆕", "");
+                $(`#${msg.id}`).next().text(t);
+                break;
+            }
+            default:
+                $("#log-container").append(I18N.BatchUnknownOperat(Batch.currentOperation, msg.message));
+                break;
         }
-        default:
-            $("#log-container").append(`Unknown operation ${Batch.currentOperation} (${msg.message})\n\n`);
-            break;
-        }
+
+        $("#log-container").append("\n\n");
 
         // Uncheck ID in list
         $(`#${msg.id}`)[0].checked = false;
 
         if (msg.title !== undefined && msg.title !== "") {
-            $("#log-container").append(`Changed title to: ${msg.title}\n`);
+            $("#log-container").append(I18N.BatchChangedTitle(msg.title));
+            $("#log-container").append("\n");
         }
     }
 
@@ -263,12 +349,12 @@ Batch.updateBatchStatus = function (event) {
  * Handle websocket errors.
  */
 Batch.batchError = function () {
-    $("#log-container").append("************\nError! Terminating session.\n");
+    $("#log-container").append("************\n" + I18N.BatchOperationFailed + "\n");
     Batch.scrollLogs();
 
     LRR.toast({
-        heading: "An error occured during batch tagging!",
-        text: "Please check application logs.",
+        heading: I18N.BatchFailHeader,
+        text: I18N.BatchFailBody,
         icon: "error",
         hideAfter: false,
     });
@@ -287,17 +373,17 @@ Batch.endBatch = function (event) {
     Batch.scrollLogs();
 
     LRR.toast({
-        heading: "Batch Operation complete!",
+        heading: I18N.BatchOperationEnd,
         icon: status,
     });
 
     // Delete the search cache after a finished session
-    Server.callAPI("api/search/cache", "DELETE", null, "Error while deleting cache! Check Logs.", null);
+    Server.callAPI("/api/search/cache", "DELETE", null, I18N.ErrorDeletingCache, null);
 
     $("#cancel-job").hide();
 
     if (Batch.currentOperation === "delete") {
-        $("#log-container").append("Reloading page in 5 seconds to account for deleted archives...\n");
+        $("#log-container").append(I18N.BatchReloadingPage + "\n");
         setTimeout(() => { window.location.reload(); }, 5000);
     } else {
         $("#restart-job").show();
@@ -316,7 +402,7 @@ Batch.scrollLogs = function () {
 };
 
 Batch.cancelBatch = function () {
-    $("#log-container").append("Cancelling...\n");
+    $("#log-container").append(I18N.BatchCancelling + "\n");
     Batch.socket.close();
 };
 

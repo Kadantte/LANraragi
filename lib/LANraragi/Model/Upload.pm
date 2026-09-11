@@ -1,24 +1,32 @@
 package LANraragi::Model::Upload;
 
+use v5.36;
+
 use strict;
 use warnings;
 
 use Redis;
+use Config;
+use Encode;
 use URI::Escape;
 use File::Basename;
-use File::Temp qw(tempdir);
+use File::Temp qw(tempdir tmpnam);
 use File::Find qw(find);
-use File::Copy qw(move);
 
-use LANraragi::Utils::Database qw(invalidate_cache compute_id);
-use LANraragi::Utils::Logging qw(get_logger);
-use LANraragi::Utils::Database qw(redis_encode);
-use LANraragi::Utils::Generic qw(is_archive get_bytelength);
-use LANraragi::Utils::String qw(trim trim_CRLF trim_url);
+use LANraragi::Utils::Archive  qw(extract_thumbnail);
+use LANraragi::Utils::Database qw(invalidate_cache compute_id set_title set_summary add_archive_to_redis add_timestamp_tag add_pagecount add_arcsize);
+use LANraragi::Utils::Logging  qw(get_logger);
+use LANraragi::Utils::Redis    qw(redis_encode);
+use LANraragi::Utils::Generic  qw(is_archive get_bytelength);
+use LANraragi::Utils::String   qw(trim trim_CRLF trim_url);
+use LANraragi::Utils::Path     qw(create_path get_archive_path rename_path move_path unlink_path);
 
 use LANraragi::Model::Config;
 use LANraragi::Model::Plugins;
 use LANraragi::Model::Category;
+use LANraragi::Model::Archive;
+
+use constant IS_UNIX => ( $Config{osname} ne 'MSWin32' );
 
 # Handle files uploaded by the user, or downloaded from remote endpoints.
 
@@ -29,39 +37,40 @@ use LANraragi::Model::Category;
 # The file will be added to a category, if its ID is specified.
 # You can also specify tags to add to the metadata for the processed file before autoplugin is ran. (if it's enabled)
 #
-# Returns a status value, the ID and title of the file, and a status message.
-sub handle_incoming_file {
+# Returns an HTTP status code, the ID and title of the file, and a status message.
+sub handle_incoming_file ( $tempfile, $catid, $tags, $title, $summary ) {
 
-    my ( $tempfile, $catid, $tags )   = @_;
-    my ( $filename, $dirs,  $suffix ) = fileparse( $tempfile, qr/\.[^.]*/ );
+    my ( $filename, $dirs, $suffix ) = fileparse( $tempfile, qr/\.[^.]*/ );
     $filename = $filename . $suffix;
     my $logger = get_logger( "File Upload/Download", "lanraragi" );
 
     # Check if file is an archive
     unless ( is_archive($filename) ) {
-        return ( 0, "deadbeef", $filename, "Unsupported File Extension ($filename)" );
+        $logger->debug("$filename is not an archive, halting upload process.");
+        return ( 415, "deadbeef", $filename, "Unsupported File Extension ($filename)" );
     }
 
     # Compute an ID here
     my $id = compute_id($tempfile);
-    $logger->debug("ID of uploaded file is $id");
+    $logger->debug("ID of uploaded file $filename is $id");
 
     # Future home of the file
     my $userdir     = LANraragi::Model::Config->get_userdir;
-    my $output_file = $userdir . '/' . $filename;
+    my $output_file = create_path( $userdir . '/' . $filename );
 
     #Check if the ID is already in the database, and
     #that the file it references still exists on the filesystem
     my $redis        = LANraragi::Model::Config->get_redis;
     my $redis_search = LANraragi::Model::Config->get_redis_search;
+    my $redis_config = LANraragi::Model::Config->get_redis_config;
     my $replace_dupe = LANraragi::Model::Config->get_replacedupe;
-    my $isdupe       = $redis->exists($id) && -e $redis->hget( $id, "file" );
+    my $isdupe       = $redis->exists($id) && -e get_archive_path( $redis, $id );
 
     # Stop here if file is a dupe and replacement is turned off.
     if ( ( -e $output_file || $isdupe ) && !$replace_dupe ) {
 
         # Trash temporary file
-        unlink $tempfile;
+        unlink_path $tempfile;
 
         # The file already exists
         my $suffix = " Enable replace duplicated archive in config to replace old ones.";
@@ -70,18 +79,40 @@ sub handle_incoming_file {
           ? "This file already exists in the Library." . $suffix
           : "A file with the same name is present in the Library." . $suffix;
 
-        return ( 0, $id, $filename, $msg );
+        return ( 409, $id, $filename, $msg );
     }
 
-    # If we are replacing an existing one, just remove the old one first.
+    # If we are replacing an existing file, remove the old one first.
     if ($replace_dupe) {
-        $logger->debug("Delete archive $id before replacing it.");
-        LANraragi::Model::Archive::delete_archive($id);
+
+        if ($isdupe) {
+            $logger->debug("Deleting existing version of archive $id.");
+
+            # Basic case, delete an exact ID match.
+            LANraragi::Model::Archive::delete_archive($id);
+        }
+        elsif (-e $output_file) {
+
+            $logger->debug("Deleting existing file with the same name as the uploaded file: $output_file");
+            # More complex, the new file doesn't match an existing ID, but it matches an existing filename. 
+            # We need to find the ID of the file with that name and delete it. 
+            my $existing_id = $redis_config->hget("LRR_FILEMAP", $output_file);
+
+            if ($redis->exists($existing_id)) {
+                $logger->debug("Found existing file with the same name, ID: $existing_id. Deleting it.");
+                LANraragi::Model::Archive::delete_archive($existing_id);
+            } else {
+                # We didn't find an equivalent in the filemap. (potentially due to filesystem encoding)
+                # The only thing we can do here is delete the file manually and leave cleanup to Shinobu. 
+                $logger->warn("Found existing file with the same name, but no matching ID in Redis. Deleting the file as-is.");
+                unlink_path $output_file;
+            }
+        }
     }
 
     # Add the file to the database ourselves so Shinobu doesn't do it
     # This allows autoplugin to be ran ASAP.
-    my $name = LANraragi::Utils::Database::add_archive_to_redis( $id, $output_file, $redis );
+    my $name = add_archive_to_redis( $id, (IS_UNIX ? encode_utf8( $output_file ) : $output_file), $redis, $redis_search );
 
     # If additional tags were given to the sub, add them now.
     if ($tags) {
@@ -108,26 +139,43 @@ sub handle_incoming_file {
         }
     }
 
+    # Set title
+    if ($title) {
+        set_title( $id, $title );
+    }
+
+    # Set summary
+    if ($summary) {
+        set_summary( $id, $summary );
+    }
+
     # Move the file to the content folder.
     # Move to a .upload first in case copy to the content folder takes a while...
-    move( $tempfile, $output_file . ".upload" ) or return ( 0, $id, $name, "The file couldn't be moved to your content folder: $!" );
+    move_path( $tempfile, $output_file . ".upload" )
+      or return ( 500, $id, $name, "The file couldn't be moved to your content folder: $!" );
 
-    # Then rename inside the content folder itself to proc Shinobu.
-    move( $output_file . ".upload", $output_file ) or  return ( 0, $id, $name, "The file couldn't be renamed in your content folder: $!" );
+    # Then rename inside the content folder itself to proc Shinobu's filemap update.
+    rename_path( $output_file . ".upload", $output_file )
+      or return ( 500, $id, $name, "The file couldn't be renamed in your content folder: $!" );
 
     # If the move didn't signal an error, but still doesn't exist, something is quite spooky indeed!
     # Really funky permissions that prevents viewing folder contents?
     unless ( -e $output_file ) {
-        return ( 0, $id, $name, "The file couldn't be moved to your content folder!" );
+        return ( 500, $id, $name, "The file couldn't be moved to your content folder!" );
     }
 
     # Now that the file has been copied, we can add the timestamp tag and calculate pagecount.
     # (The file being physically present is necessary in case last modified time is used)
-    LANraragi::Utils::Database::add_timestamp_tag( $redis, $id );
-    LANraragi::Utils::Database::add_pagecount( $redis, $id );
-    LANraragi::Utils::Database::add_arcsize( $redis, $id );
+    add_timestamp_tag( $redis, $id );
+    add_pagecount( $redis, $id );
+    add_arcsize( $redis, $id );
     $redis->quit();
     $redis_search->quit();
+    $redis_config->quit();
+
+    # Generate thumbnail
+    my $thumbdir = LANraragi::Model::Config->get_thumbdir;
+    extract_thumbnail( $thumbdir, $id, 1, 1, 1 );
 
     $logger->debug("Running autoplugin on newly uploaded file $id...");
 
@@ -154,14 +202,12 @@ sub handle_incoming_file {
     # Invalidate search cache ourselves, Shinobu won't do it since the file is already in the database
     invalidate_cache();
 
-    return ( 1, $id, $name, $successmsg );
+    return ( 200, $id, $name, $successmsg );
 }
 
 # Download the given URL, using the given Mojo::UserAgent object.
 # This downloads the URL to a temporaryfolder and returns the full path to the downloaded file.
-sub download_url {
-
-    my ( $url, $ua ) = @_;
+sub download_url ( $url, $ua ) {
 
     my $logger = get_logger( "File Upload/Download", "lanraragi" );
 
@@ -169,32 +215,68 @@ sub download_url {
     die "Not a proper URL" unless $url;
     $logger->info("Downloading URL $url...This will take some time.");
 
-    my $tempdir = tempdir();
-
     # Download the URL, with 5 maximum redirects and unlimited response size.
-    my $tx           = $ua->max_response_size(0)->max_redirects(5)->get($url);
-    my $content_disp = $tx->result->headers->content_disposition;
-    my $filename     = "Not_an_archive";                                         #placeholder;
+    my $filename = "Not_an_archive";
+    my ( $tx, $content_disp, $content_type );
+
+    my $attempts = 0;
+
+    while ( !$content_disp && $attempts < 5 ) {
+        $tx           = $ua->max_response_size(0)->max_redirects(5)->get($url);
+        $content_disp = $tx->result->headers->content_disposition;
+        $content_type = $tx->result->headers->content_type;
+
+        unless ($content_disp) {
+            $logger->warn("No valid Content-Disposition header received, waiting and retrying... (attempt $attempts / 5)");
+            $logger->debug( "Result of this attempt: " . $tx->result->body );
+            sleep 1;
+            $attempts++;
+        }
+    }
+
+    if ( !$content_disp ) {
+        die( "No valid Content-Disposition header received after 5 attempts, aborting. (Last result: " . $tx->result->body . ")" );
+    }
+
+    my $content_length = $tx->result->headers->content_length;
+    my $body_size = $tx->result->body_size;
+    if ( $content_length && $content_length != $body_size ) {
+        die( "Failed to download full body. (Expected $content_length bytes, received $body_size)" );
+    }
 
     $logger->debug("Content-Disposition Header: $content_disp");
+    $logger->debug("Content-Type Header: $content_type");
     if ( $content_disp =~ /.*filename=\"(.*)\".*/gim ) {
-        $filename = $1;
+        my $temp = $1;
+        # This field should be Latin1 but sometimes it is not so use Content-Type
+        # as a hint on what to do
+        if ( $content_type =~ /.*charset=UTF-8.*/gim ) {
+            $filename = Encode::decode( "utf-8", $temp );
+        } else {
+            $filename = Encode::decode( "iso-8859-1", $temp );
+        }
     } elsif ( $content_disp =~ /.*filename\*=UTF-8''(.*)/gim ) {
-
         # This is an UTF8 filename as per rfc5987.
         # URL-decode to get the full filename.
-        $filename = uri_unescape($1);
-
+        $filename = Encode::decode( "utf-8", uri_unescape( $1 ) );
     } elsif ( $url =~ /([^\/]+)\/?$/gm ) {
-
         # Fallback to the last element of the URL as the filename.
-        $filename = $1;
+        $logger->debug("No filename found in header, using URL as filename.");
+        # Also URL/utf8 decode just in case
+        $filename = Encode::decode( "utf-8", uri_unescape( $1 ) );
+    }
+
+    if ( !IS_UNIX ) {
+        $filename = encode_utf8( $filename );
     }
 
     $logger->debug("Filename: $filename");
 
     # remove invalid Windows chars
     $filename =~ s@[\\/:"*?<>|]+@@g;
+
+    # Move file to a temp folder (not the default LRR one)
+    my $tempdir = tempdir();
 
     my ( $fn, $path, $ext ) = fileparse( $filename, qr/\.[^.]*/ );
     my $byte_limit = LANraragi::Model::Config->enable_cryptofs ? 143 : 255;
@@ -206,22 +288,21 @@ sub download_url {
         $filename = substr( $filename, 0, -1 );
     }
     $filename = $filename . $ext;
-    $logger->debug("Filename post clean: $filename");
-    $tx->result->save_to("$tempdir\/$filename");
 
-    # Update $tempfile to the exact reference created by the host filesystem
-    # This is done by finding the first (and only) file in $tempdir.
-    my $tempfile = "";
-    find(
-        sub {
-            return if -d $_;
-            $tempfile = $File::Find::name;
-            $filename = $_;
-        },
-        $tempdir
-    );
+    my $tempfile = $tempdir . '/' . $filename;
 
-    return "$tempdir\/$filename";
+    # To support long paths use a temp file and then move it to the final location using long-path compatible methods
+    my $mojo_temp = tmpnam();
+    if ( !$tx->result->content->asset->move_to( $mojo_temp ) ) {
+        die("Could not move uploaded file $filename to $mojo_temp");
+    }
+
+    # Move the file for real this time
+    if ( !move_path( $mojo_temp, $tempfile ) ) {
+        die("Could not move uploaded file $mojo_temp to $tempfile");
+    }
+
+    return $tempfile;
 }
 
 1;

@@ -16,6 +16,8 @@ my $cwd     = getcwd();
 my $SAMPLES = "$cwd/tests/samples";
 require "$cwd/tests/mocks.pl";
 
+setup_redis_mock();
+
 use_ok('LANraragi::Plugin::Metadata::Eze');
 
 sub eve_test {
@@ -104,6 +106,19 @@ note("eze-full Tests, origin_title on, additional_tags off");
         "artist:hiten, female:defloration, female:pantyhose, female:sole female, group:hitenkei, language:chinese, language:translated, male:sole male, parody:original, category:doujinshi, source:exhentai.org/g/1017975/49b3c275a1",
         "tags parsing test 2/2"
     );
+}
+
+
+note("eze no gallery_info file");
+{
+    my $origin_title    = 1;
+    my $additional_tags = 0;
+
+    my %ezetags = eve_test( "/eze/eze_broken.json", $origin_title, $additional_tags );
+
+    is( $ezetags{title}, undef, "no title returned");
+    is( $ezetags{tags}, undef, "no tags returned");
+    isnt( $ezetags{error}, undef, "Proper error returned");
 }
 
 done_testing();

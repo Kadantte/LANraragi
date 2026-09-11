@@ -1,10 +1,12 @@
+lib/LANraragi/Plugin/Managed
+
 node_modules
 content
+thumb
 .minion.db*
 npm-debug.log
 dump.rdb
 .vstags
-.gitbook
 *qemu-*-static*
 Dockerfile.*
 .DS_Store
@@ -12,3 +14,5 @@ config.log
 autobackup.json
 Makefile
 oshino
+temp
+win-dist

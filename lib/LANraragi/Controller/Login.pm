@@ -1,11 +1,10 @@
 package LANraragi::Controller::Login;
 use Mojo::Base 'Mojolicious::Controller';
-use MIME::Base64;
 
 use Redis;
-use Authen::Passphrase;
 
-use LANraragi::Utils::Generic qw(generate_themes_header);
+use LANraragi::Utils::Generic qw(generate_themes_header get_authenticator);
+use LANraragi::Utils::Login   qw(is_logged_in_api);
 
 sub check {
     my $self = shift;
@@ -14,9 +13,23 @@ sub check {
     my $redirect = $self->req->param('redirect') || 'index';
 
     #match password we got with the authen hash stored in redis
-    my $ppr = Authen::Passphrase->from_rfc2307( $self->LRR_CONF->get_password );
+    my $auth = get_authenticator;
+    my $hash = $self->LRR_CONF->get_password;
 
-    if ( $ppr->match($pw) ) {
+    if ( $hash =~ /{CRYPT}(.*)/ ) { # Convert RFC 2307 to bare hash
+        $hash = $1;
+    }
+
+    if ( $auth->verify_password( $pw, $hash ) ) {
+
+        if ( $auth->needs_rehash( $hash ) ) {
+            $self->LRR_LOGGER->info( "Rehashing password" );
+            my $rehash = "{CRYPT}" . $auth->hash_password( $pw );
+
+            my $redis = $self->LRR_CONF->get_redis_config;
+            $redis->hset( "LRR_CONFIG", "password", $rehash );
+            $redis->quit;
+        }
 
         $self->LRR_LOGGER->info( "Successful login attempt from " . $self->tx->remote_address );
 
@@ -56,20 +69,11 @@ sub logged_in {
 sub logged_in_api {
     my $self = shift;
 
-    # The API key is in the Authentication header.
-    my $expected_key = $self->LRR_CONF->get_apikey;
-    my $expected_header = "Bearer " . encode_base64( $expected_key, "" );
+    # Allow OPTIONS if being handled by OpenAPI.
+    # See Mojolicious::Plugin::Openai::Security::_build_action.
+    return 1 if $self->req->method eq 'OPTIONS' && $self->match->stack->[-1]{'openapi.default_options'};
 
-    my $auth_header = $self->req->headers->authorization || "";
-
-    # It can also be passed as a parameter. (Undocumented, mostly just meant for OPDS)
-    my $param_key = $self->req->param('key') || '';
-
-    return 1
-      if ( $expected_key ne "" && $auth_header eq $expected_header )
-      || ( $param_key ne "" && $param_key eq $expected_key )
-      || $self->session('is_logged')
-      || $self->LRR_CONF->enable_pass == 0;
+    return 1 if is_logged_in_api( $self );
     $self->render(
         json   => { error => "This API is protected and requires login or an API Key." },
         status => 401

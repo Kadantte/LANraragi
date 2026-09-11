@@ -11,6 +11,11 @@ use Test::MockObject;
 
 use Data::Dumper;
 
+# Mock Redis
+my $cwd = getcwd;
+require $cwd . "/tests/mocks.pl";
+setup_redis_mock();
+
 use LANraragi::Model::Config;
 use LANraragi::Plugin::Login::EHentai;
 use LANraragi::Plugin::Metadata::EHentai;
@@ -20,21 +25,18 @@ use LANraragi::Plugin::Metadata::Eze;
 use LANraragi::Plugin::Metadata::Fakku;
 use LANraragi::Plugin::Metadata::Hitomi;
 
-# Mock Redis
-my $cwd = getcwd;
-require $cwd . "/tests/mocks.pl";
-setup_redis_mock();
 
 note("E-Hentai Tests");
 
 {
+
     my $ua        = trap { LANraragi::Plugin::Login::EHentai::do_login( "", "", "" ); };
     my $domain    = "e-hentai.org";
     my $eH_gID    = "618395";
     my $eH_gToken = "0439fa3666";
 
     my ( $test_eH_gID, $test_eH_gToken ) =
-      trap { LANraragi::Plugin::Metadata::EHentai::lookup_gallery( "TOUHOU GUNMANIA", "", "", $ua, $domain, "", 0, 0 ); };
+      trap { LANraragi::Plugin::Metadata::EHentai::lookup_gallery( "TOUHOU GUNMANIA", "", "", $ua, $domain, "", 0, 0, 0 ); };
 
     is( $test_eH_gID,    $eH_gID,    'eHentai search test 1/2' );
     is( $test_eH_gToken, $eH_gToken, 'eHentai search test 2/2' );
@@ -61,23 +63,23 @@ note("nHentai Tests : Disabled due to cloudflare being used on nH");
 #     ok( length $nH_hashdata{title} > 0, 'nHentai title test' );
 # }
 
-note("Chaika Tests");
+note("Chaika Tests : Disabled due to rate limiting");
 
-{
-    my ( $tags_jsearch, $title_jsearch ) =
-      trap { LANraragi::Plugin::Metadata::Chaika::search_for_archive( "Zettai Seikou Keikaku", "artist:kemuri haku" ); };
-    ok( length $tags_jsearch > 0,  'chaika.moe search test' );
-    ok( length $title_jsearch > 0, 'chaika.moe title test' );
+# {
+#     my ( $tags_jsearch, $title_jsearch ) =
+#       trap { LANraragi::Plugin::Metadata::Chaika::search_for_archive( "Zettai Seikou Keikaku", "artist:kemuri haku" ); };
+#     ok( length $tags_jsearch > 0,  'chaika.moe search test' );
+#     ok( length $title_jsearch > 0, 'chaika.moe title test' );
 
-    my ( $tags_by_id, $title_by_id ) = trap { LANraragi::Plugin::Metadata::Chaika::tags_from_chaika_id( "archive", "27240" ); };
-    ok( length $tags_by_id > 0,  'chaika.moe API Tag retrieval test' );
-    ok( length $title_by_id > 0, 'chaika.moe ID title test ' );
+#     my ( $tags_by_id, $title_by_id ) = trap { LANraragi::Plugin::Metadata::Chaika::tags_from_chaika_id( "archive", "27240" ); };
+#     ok( length $tags_by_id > 0,  'chaika.moe API Tag retrieval test' );
+#     ok( length $title_by_id > 0, 'chaika.moe ID title test ' );
 
-    my ( $tags_by_sha1, $title_by_sha1 ) =
-      trap { LANraragi::Plugin::Metadata::Chaika::tags_from_sha1("276601a0e5dae9427940ed17ac470c9945b47073"); };
-    ok( length $tags_jsearch > 0, 'chaika.moe SHA-1 reverse search test' );
-    ok( length $title_by_id > 0,  'chaika.moe SHA-1 title test' );
-}
+#     my ( $tags_by_sha1, $title_by_sha1 ) =
+#       trap { LANraragi::Plugin::Metadata::Chaika::tags_from_sha1("276601a0e5dae9427940ed17ac470c9945b47073"); };
+#     ok( length $tags_by_sha1 > 0, 'chaika.moe SHA-1 reverse search test' );
+#     ok( length $title_by_sha1 > 0,  'chaika.moe SHA-1 title test' );
+# }
 
 note("FAKKU Tests : Disabled due to cloudflare being used");
 

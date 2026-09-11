@@ -1,0 +1,24 @@
+# --- LRR Windows build script V2 ---
+
+$ErrorActionPreference = "Stop"
+
+echo "🎌 Building up LRR Windows Package 🎌"
+echo "Inferring version from package.json..."
+
+$json = (Get-Content "package.json" -Raw) | ConvertFrom-Json
+$version = $json.version
+echo "Version is $version"
+$env:LRR_VERSION_NUM=$version
+
+# Copy vfs
+Copy-Item -Path "./win-dist" -Destination "./tools/build/windows/Karen/Karen/bin/win-x64/publish/lanraragi" -Recurse -Container
+
+# Build Karen
+Set-Location "./tools/build/windows/Karen"
+dotnet publish --nologo -p:PublishProfile=win-x64 Karen\Karen.csproj
+
+# Build Setup
+MSBuild -nologo -v:minimal /p:RestorePackagesConfig=true /t:Restore
+MSBuild Setup\Setup.csproj -nologo -v:minimal /p:Configuration=Release /p:Platform=AnyCPU
+
+Get-FileHash "./Setup/bin/LANraragi.msi" | Format-List

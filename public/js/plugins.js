@@ -1,12 +1,23 @@
 /**
- * Plugins Operations.
+ * Plugins Operations
  */
+import * as Server from "./mod/server.js";
+import * as LRR from "./mod/common.js";
+import I18N from "i18n";
+
 const Plugins = {};
 
 Plugins.initializeAll = function () {
     // bind events to DOM
     $(document).on("click.save", "#save", () => Server.saveFormData("#editPluginForm"));
-    $(document).on("click.return", "#return", () => { window.location.href = "/"; });
+    $(document).on("click.return", "#return", () => { window.location.href = new LRR.ApiURL("/"); });
+
+    $(document).on("click.triggerScript", ".trigger-script-btn", function () {
+        const namespace = $(this).data("namespace");
+        if (namespace) {
+            Server.triggerScript(namespace);
+        }
+    });
 
     // Handler for file uploading.
     $("#fileupload").fileupload({
@@ -15,14 +26,14 @@ Plugins.initializeAll = function () {
         done(e, data) {
             if (data.result.success) {
                 LRR.toast({
-                    heading: "Plugin successfully uploaded!",
-                    text: `The plugin "${data.result.name}" has been successfully added. Refresh the page to see it.`,
+                    heading: I18N.PluginUploadSuccess,
+                    text: I18N.PluginUploadDesc(data.result.name),
                     icon: "info",
                     hideAfter: 10000,
                 });
             } else {
                 LRR.toast({
-                    heading: "Error uploading plugin",
+                    heading: I18N.PluginUploadError,
                     text: data.result.error,
                     icon: "error",
                     hideAfter: false,

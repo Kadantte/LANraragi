@@ -1,27 +1,31 @@
 package LANraragi::Model::Archive;
 
+use v5.36;
+use experimental 'try';
+
 use strict;
 use warnings;
 use utf8;
 
-use feature qw(signatures);
-no warnings 'experimental::signatures';
-
 use Cwd 'abs_path';
 use Redis;
+use Mojo::JSON  qw(decode_json encode_json);
 use Time::HiRes qw(usleep);
 use File::Path  qw(remove_tree);
 use File::Basename;
 use File::Copy "cp";
 use File::Path qw(make_path);
+use Mojo::IOLoop;
 
 use LANraragi::Utils::Generic    qw(render_api_response);
 use LANraragi::Utils::String     qw(trim trim_CRLF);
 use LANraragi::Utils::TempFolder qw(get_temp);
 use LANraragi::Utils::Logging    qw(get_logger);
-use LANraragi::Utils::Archive    qw(extract_single_file extract_thumbnail);
-use LANraragi::Utils::Database
-  qw(redis_encode redis_decode invalidate_cache set_title set_tags set_summary get_archive_json get_archive_json_multi);
+use LANraragi::Utils::Archive    qw(extract_single_file extract_thumbnail is_cbw cbw_prefetch);
+use LANraragi::Utils::Database   qw(invalidate_cache set_title set_tags set_summary get_archive_json get_archive_json_multi);
+use LANraragi::Utils::PageCache  qw(fetch put);
+use LANraragi::Utils::Redis      qw(redis_decode redis_encode);
+use LANraragi::Utils::Path       qw(unlink_path get_archive_path);
 
 # get_title(id)
 #   Returns the title for the archive matching the given id.
@@ -42,6 +46,7 @@ sub get_title ($id) {
 # Functions used when dealing with archives.
 
 # Generates an array of all the archive JSONs in the database that have existing files.
+# This doesn't include Tanks. 
 sub generate_archive_list {
 
     my $redis = LANraragi::Model::Config->get_redis;
@@ -70,19 +75,19 @@ sub update_thumbnail {
     my $newthumb = "";
 
     # Get the required thumbnail we want to make the main one
-    eval { $newthumb = extract_thumbnail( $thumbdir, $id, $page, 1 ) };
+    no warnings 'experimental::try';
+    try {
+        $newthumb = extract_thumbnail( $thumbdir, $id, $page, 1, 1 )
+    } catch ($e) {
+        render_api_response( $self, "update_thumbnail", $e );
+        return;
+    }
 
-    if ( $@ || !$newthumb ) {
-        render_api_response( $self, "update_thumbnail", $@ );
+    if ( !$newthumb ) {
+        render_api_response( $self, "update_thumbnail", "Thumbnail not generated." );
     } else {
-        if ( $newthumb ne $thumbname && $newthumb ne "" ) {
-
-            # Copy the thumbnail to the main thumbnail location
-            cp( $newthumb, $thumbname );
-        }
-
         $self->render(
-            json => {
+            openapi => {
                 operation     => "update_thumbnail",
                 new_thumbnail => $newthumb,
                 success       => 1
@@ -107,7 +112,7 @@ sub generate_page_thumbnails {
 
     # Get the number of pages in the archive
     my $redis = LANraragi::Model::Config->get_redis;
-    my $pages = $redis->hget( $id, "pagecount" );
+    my $pages = $redis->hget( $id, "pagecount" ) // 0;
 
     my $subfolder = substr( $id, 0, 2 );
     my $thumbname = "$thumbdir/$subfolder/$id.$format";
@@ -115,7 +120,7 @@ sub generate_page_thumbnails {
     my $should_queue_job = 0;
 
     for ( my $page = 1; $page <= $pages; $page++ ) {
-        my $thumbname = ( $page - 1 > 0 ) ? "$thumbdir/$subfolder/$id/$page.$format" : "$thumbdir/$subfolder/$id.$format";
+        my $thumbname = "$thumbdir/$subfolder/$id/$page.$format";
 
         unless ( $force == 0 && -e $thumbname ) {
             $logger->debug("Thumbnail for page $page doesn't exist (path: $thumbname or force=$force), queueing job.");
@@ -135,7 +140,7 @@ sub generate_page_thumbnails {
             my $job_state = $self->minion->job($job_id)->info->{state};
             if ( $job_state eq "active" || $job_state eq "inactive" ) {
                 $self->render(
-                    json => {
+                    openapi => {
                         operation => "generate_page_thumbnails",
                         success   => 1,
                         job       => $job_id
@@ -153,7 +158,7 @@ sub generate_page_thumbnails {
         # Save job in Redis so we can check on it if this endpoint is called again
         $redis->hset( $id, "thumbjob", $job_id );
         $self->render(
-            json => {
+            openapi => {
                 operation => "generate_page_thumbnails",
                 success   => 1,
                 job       => $job_id
@@ -162,7 +167,7 @@ sub generate_page_thumbnails {
         );
     } else {
         $self->render(
-            json => {
+            openapi => {
                 operation => "generate_page_thumbnails",
                 success   => 1,
                 message   => "No job queued, all thumbnails already exist."
@@ -180,6 +185,7 @@ sub serve_thumbnail {
 
     my $page = $self->req->param('page');
     $page = 0 unless $page;
+    my $is_first_page = $page == 0;
 
     my $no_fallback = $self->req->param('no_fallback');
     $no_fallback = ( $no_fallback && $no_fallback eq "true" ) || "0";    # Prevent undef warnings by checking the variable first
@@ -194,7 +200,7 @@ sub serve_thumbnail {
     my $subfolder = substr( $id, 0, 2 );
 
     # Check for the page and set the appropriate thumbnail name and fallback thumbnail name
-    my $thumbbase          = ( $page - 1 > 0 ) ? "$thumbdir/$subfolder/$id/$page" : "$thumbdir/$subfolder/$id";
+    my $thumbbase          = ($is_first_page) ? "$thumbdir/$subfolder/$id" : "$thumbdir/$subfolder/$id/$page";
     my $thumbname          = "$thumbbase.$format";
     my $fallback_thumbname = "$thumbbase.$fallback_format";
 
@@ -210,7 +216,7 @@ sub serve_thumbnail {
             # Queue a minion job to generate the thumbnail. Thumbnail jobs have the lowest priority.
             my $job_id = $self->minion->enqueue( thumbnail_task => [ $thumbdir, $id, $page ] => { priority => 0, attempts => 3 } );
             $self->render(
-                json => {
+                openapi => {
                     operation => "serve_thumbnail",
                     success   => 1,
                     job       => $job_id
@@ -230,6 +236,27 @@ sub serve_thumbnail {
     }
 }
 
+sub get_page_data ( $id, $path ) {
+    my $cachekey = "page/$id/$path";
+    my $content  = fetch($cachekey);
+    if ( !defined($content) ) {
+
+        # Extract the file from the parent archive if it doesn't exist
+        my $redis   = LANraragi::Model::Config->get_redis;
+        my $archive = get_archive_path( $redis, $id );
+        $redis->quit();
+        $content = extract_single_file( $archive, $path );
+        put( $cachekey, $content );
+
+        # For CBW archives, prefetch upcoming pages asynchronously so they're
+        # cache hits when the user navigates forward.
+        if ( is_cbw($archive) ) {
+            Mojo::IOLoop->next_tick( sub { cbw_prefetch( $archive, $id, $path, 3 ) } );
+        }
+    }
+    return $content;
+}
+
 sub serve_page {
     my ( $self, $id, $path ) = @_;
 
@@ -237,97 +264,39 @@ sub serve_page {
 
     $logger->debug("Page /$id/$path was requested");
 
-    my $tempfldr = get_temp();
-    my $file     = $tempfldr . "/$id/$path";
+    # Apply resizing transformation if set in Settings
+    if ( LANraragi::Model::Config->enable_resize ) {
 
-    if ( -e $file ) {
+        # Store resized files in a subfolder of the ID's temp folder, keyed by quality
+        my $threshold = LANraragi::Model::Config->get_threshold;
+        my $quality   = LANraragi::Model::Config->get_readquality;
 
-        # Freshly created files might not be complete yet.
-        # We have to wait before trying to serve them out...
-        my $last_size = 0;
-        my $size      = -s $file;
-        my $timeout   = 0;
-        while (1) {
-            $logger->debug("Waiting for file to be fully written ($size, previously $last_size)");
-            usleep(10000);     # 10ms
-            $timeout += 10;    # Sanity check in case the file remains at 0 bytes forever
-            $last_size = $size;
-            $size      = -s $file;
-
-            # If the size hasn't changed since the last loop, it's likely the file is ready.
-            last
-              if ( $last_size eq $size && ( $size ne 0 || $timeout > 1000 ) );
+        my $cachekey = "resize_page/$id/$path/$threshold/$quality";
+        my $content  = fetch($cachekey);
+        if ( !defined($content) ) {
+            $content = LANraragi::Model::Reader::resize_image( get_page_data( $id, $path ), $quality, $threshold );
+            put( $cachekey, $content );
         }
 
+        # resize_image always converts the image to jpg
+        $self->render_file(
+            data                => $content,
+            content_disposition => "inline",
+            format              => "jpg"
+        );
     } else {
 
-        # Extract the file from the parent archive if it doesn't exist
-        $logger->debug("Extracting missing file");
-        my $redis   = LANraragi::Model::Config->get_redis;
-        my $archive = $redis->hget( $id, "file" );
-        $redis->quit();
+        # Get the file extension to report content-type properly
+        my ( $n, $p, $file_ext ) = fileparse( $path, qr/\.[^.]*/ );
+        my $content = get_page_data( $id, $path );
+        $logger->debug( "Data size:" . length($content) );
 
-        # Check again just in case
-        unless ( -e $file ) {
-            my $outfile = extract_single_file( $archive, $path, $tempfldr . "/$id" );
-            die "mismatched filenames $file and $outfile" unless $file eq $outfile;    # sanity check
-        }
-    }
-
-    # abs_path returns null if the path is invalid or doesn't exist.
-    my $abspath = abs_path($file);
-
-    if ( !$abspath ) {
-        $logger->debug("abs_path returned null with $file as input");
-        render_api_response( $self, "serve_page", "Invalid path $path." );
-        return;
-    }
-
-    $logger->debug("Path to requested file is $abspath");
-
-    # This API can only serve files from the temp folder
-    if ( index( $abspath, $tempfldr ) != -1 ) {
-
-        # Apply resizing transformation if set in Settings
-        if ( LANraragi::Model::Config->enable_resize ) {
-
-            # Store resized files in a subfolder of the ID's temp folder, keyed by quality
-            my $threshold    = LANraragi::Model::Config->get_threshold;
-            my $quality      = LANraragi::Model::Config->get_readquality;
-            my $resized_file = "$tempfldr/$id/resized/$quality/$path";
-
-            unless ( -e $resized_file ) {
-                my ( $n, $resized_folder, $e ) = fileparse( $resized_file, qr/\.[^.]*/ );
-                make_path($resized_folder);
-
-                $logger->debug("Copying file to $resized_folder for resize transformation");
-                cp( $file, $resized_file );
-
-                LANraragi::Model::Reader::resize_image( $resized_file, $quality, $threshold );
-            }
-
-            # resize_image always converts the image to jpg
-            $self->render_file(
-                filepath            => $resized_file,
-                content_disposition => "inline",
-                format              => "jpg"
-            );
-
-        } else {
-
-            # Get the file extension to report content-type properly
-            my ( $n, $p, $file_ext ) = fileparse( $file, qr/\.[^.]*/ );
-
-            # Serve extracted file directly
-            $self->render_file(
-                filepath            => $file,
-                content_disposition => "inline",
-                format              => substr( $file_ext, 1 )
-            );
-        }
-
-    } else {
-        render_api_response( $self, "serve_page", "This API cannot render files outside of the temporary folder." );
+        # Serve extracted file directly
+        $self->render_file(
+            data                => $content,
+            content_disposition => "inline",
+            format              => substr( $file_ext, 1 )
+        );
     }
 }
 
@@ -361,11 +330,59 @@ sub update_metadata {
     return "";
 }
 
+sub add_toc_entry {
+    my ( $id, $page, $title ) = @_;
+
+    my $redis  = LANraragi::Model::Config->get_redis;
+    my $logger = get_logger( "Archives", "lanraragi" );
+    my $toc    = $redis->hget( $id, "toc" );
+
+    no warnings 'experimental::try';
+    try {
+        $toc          = decode_json($toc);
+        $toc->{$page} = $title;
+        $toc          = encode_json($toc);
+    } catch ($e) {
+        $logger->warn(
+            "Error while updating ToC: $e -- Will overwrite with a ToC containing the new data. (This is normal if this ID had no ToC yet.)"
+        );
+        $toc          = {};
+        $toc->{$page} = $title;
+        $toc          = encode_json($toc);
+    }
+    $redis->hset( $id, "toc", $toc );
+
+    $redis->quit();
+    return "";
+}
+
+sub remove_toc_entry {
+    my ( $id, $page ) = @_;
+
+    my $redis  = LANraragi::Model::Config->get_redis;
+    my $logger = get_logger( "Archives", "lanraragi" );
+    my $toc    = $redis->hget( $id, "toc" );
+
+    no warnings 'experimental::try';
+    try {
+        $toc = decode_json($toc);
+        delete $toc->{$page};
+        $toc = encode_json($toc);
+    } catch ($e) {
+        $logger->warn("Error while updating ToC: $e -- Will overwrite with a blank ToC.");
+        $toc = "{}";
+    }
+    $redis->hset( $id, "toc", $toc );
+
+    $redis->quit();
+    return "";
+}
+
 # Deletes the archive with the given id from redis, and the matching archive file/thumbnail.
 sub delete_archive ($id) {
 
     my $redis    = LANraragi::Model::Config->get_redis;
-    my $filename = $redis->hget( $id, "file" );
+    my $filename = get_archive_path( $redis, $id );
     my $oldtags  = $redis->hget( $id, "tags" );
     $oldtags = redis_decode($oldtags);
 
@@ -374,20 +391,47 @@ sub delete_archive ($id) {
     $oldtitle = trim_CRLF($oldtitle);
     $oldtitle = redis_encode($oldtitle);
 
+    # Remove from tanks/collections
+    foreach my $tank_id ( LANraragi::Model::Tankoubon::get_tankoubons_containing_archive($id) ) {
+        LANraragi::Model::Tankoubon::remove_from_tankoubon( $tank_id, $id );
+    }
+
+    foreach my $cat ( LANraragi::Model::Category::get_categories_containing_archive($id) ) {
+        my $catid = %{$cat}{"id"};
+        LANraragi::Model::Category::remove_from_category( $catid, $id );
+    }
+
+    # Remove Stamps
+    my $stamps    = $redis->hget( $id, "stamps" );
+    my @stamps;
+
+    if ( $redis->hexists( $id, "stamps" )) {
+        eval { @stamps = @{ decode_json($stamps) } };
+        if ($@) {
+            die;
+        }
+        foreach my $stamp ( @stamps ) {
+            $redis->del($stamp);
+        }
+    } else {
+        # Stamps attribute was not set, do nothing.
+    }
+
     $redis->del($id);
     $redis->quit();
+
+    LANraragi::Utils::Database::update_indexes( $id, $oldtags, "" );
 
     # Remove matching data from the search indexes
     my $redis_search = LANraragi::Model::Config->get_redis_search;
     $redis_search->zrem( "LRR_TITLES", "$oldtitle\0$id" );
-    $redis_search->srem( "LRR_NEW",      $id );
-    $redis_search->srem( "LRR_UNTAGGED", $id );
+    $redis_search->srem( "LRR_NEW",         $id );
+    $redis_search->srem( "LRR_UNTAGGED",    $id );
+    $redis_search->srem( "LRR_TANKGROUPED", $id );
     $redis_search->quit();
 
-    LANraragi::Utils::Database::update_indexes( $id, $oldtags, "" );
-
     if ( -e $filename ) {
-        my $status = unlink $filename;
+        my $status = unlink_path($filename);
 
         my $thumbdir  = LANraragi::Model::Config->get_thumbdir;
         my $subfolder = substr( $id, 0, 2 );
